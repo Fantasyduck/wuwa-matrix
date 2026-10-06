@@ -33,7 +33,7 @@ async function cloudClient(){
       auth.onAuthStateChange((event,session)=>{
         const user=session?.user||null;
         if(user?.id!==CLOUD.user?.id){CLOUD.epoch++;CLOUD.user=user;CLOUD.plans=[];CLOUD.page=0;CLOUD.loadedId=null;CLOUD.verify=null;CLOUD.draftTitle='';}
-        if(!document.querySelector('#profileDlg').hidden)renderProfile();
+        if(document.body.dataset.workspace==='personal')renderProfile();
       });
       return {auth,db};
     })().catch(e=>{CLOUD.client=null;throw e;});
@@ -123,12 +123,13 @@ function renderProfile(){
   bind('#cloudPrev',()=>cloudAction(async()=>{CLOUD.page--;await cloudRefresh();}));bind('#cloudNext',()=>cloudAction(async()=>{CLOUD.page++;await cloudRefresh();}));
   bind('#cloudUndo',()=>{if(!confirm('恢复上次云方案载入前的本机编排？'))return;cloudAction(async()=>{const data=cleanCloudPayload(JSON.parse(localStorage.getItem('wuwa-cloud-plan-backup-v1')));localStorage.setItem(LS_KEY,JSON.stringify(data));if(!load())throw Error('备份载入失败');renderAll();renderSettings();save();localStorage.removeItem('wuwa-cloud-plan-backup-v1');CLOUD.notice='已恢复本机编排';});});
 }
-function closeProfile(){const root=document.getElementById('profileDlg');root.hidden=true;document.getElementById('btnProfile').focus({preventScroll:true});}
+function closeProfile(){if(typeof window.matrixNavigate==='function')window.matrixNavigate('planner');}
 function initProfile(){
-  const root=document.createElement('div');root.id='profileDlg';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','profileTitle');
-  root.innerHTML='<div class="profile-card"><div class="profile-head"><div><small>PERSONAL / 我的空间</small><h1 id="profileTitle">个人中心</h1></div><button class="btn ghost" id="profileClose" aria-label="关闭个人中心">✕</button></div><div id="profileBody"></div></div>';document.body.appendChild(root);
-  document.getElementById('profileClose').onclick=closeProfile;root.onclick=e=>{if(e.target===root)closeProfile();};
-  document.getElementById('btnProfile').onclick=()=>{if(ROLE_DIALOG)closeRoleDialog();closeTeamPop();setPoolOpen(false);root.hidden=false;renderProfile();document.getElementById('profileClose').focus();cloudAction(async()=>{const {auth}=await cloudClient();const result=await auth.getUser();CLOUD.user=result.data?.user||null;if(CLOUD.user)await cloudRefresh();});};
-  document.addEventListener('keydown',e=>{if(root.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeProfile();}if(e.key==='Tab'){const controls=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(el=>el.getClientRects().length);const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}},true);
+  const root=document.createElement('section');root.id='profileDlg';root.hidden=false;root.setAttribute('aria-label','云方案账号');
+  root.innerHTML='<div class="profile-card"><div id="profileBody"></div></div>';document.getElementById('cloudAccountSlot').appendChild(root);
+  window.openPersonalCloud=()=>{renderProfile();cloudAction(async()=>{const {auth}=await cloudClient();const result=await auth.getUser();CLOUD.user=result.data?.user||null;if(CLOUD.user)await cloudRefresh();});};
+  document.getElementById('btnProfile').onclick=()=>window.matrixNavigate('personal');
+  renderProfile();
+  if(document.body.dataset.workspace==='personal')window.openPersonalCloud();
 }
 initProfile();

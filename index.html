@@ -773,6 +773,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   </div>
 </header>
 
+<div class="planner-bookmarks" id="plannerBookmarks"><button type="button" data-bookmark="planner" aria-current="page">编排工作台</button><button type="button" data-bookmark="boss">BOSS 情报 <span>↗</span></button><button type="button" id="bookmarkResults">血线推演</button></div>
 <div class="layout">
 
   <!-- 左：共鸣者库 -->
@@ -817,10 +818,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
       <div style="padding:0 13px 12px" id="hpOverview"></div>
     </details>
 
-    <details class="sec" id="accountMatrixSection">
-      <summary>库街区 · 实战矩阵</summary>
-      <div id="accountMatrixBody"></div>
-    </details>
+
 
     <details class="sec">
       <summary>矩阵情报 · 当期增幅回路与敌人</summary>
@@ -856,13 +854,25 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   <div class="atlas-heading"><div><span>MATRIX / INTELLIGENCE</span><h1 id="bossAtlasTitle">当期 BOSS 情报</h1><p id="bossAtlasPeriod"></p></div><button type="button" class="btn ghost" id="bossAtlasBack">返回编排</button></div>
   <div id="bossAtlasRows" class="atlas-rows"></div>
 </section>
-<nav id="workspaceNav" class="workspace-nav" aria-label="功能分区">
-  <button type="button" data-workspace="pool"><span aria-hidden="true">◈</span>共鸣者</button>
-  <button type="button" data-workspace="teams" aria-current="page"><span aria-hidden="true">▦</span>队伍</button>
-  <button type="button" data-workspace="waves"><span aria-hidden="true">▤</span>血线</button>
-  <button type="button" data-workspace="boss"><span aria-hidden="true">◇</span>BOSS 情报</button>
+<section id="libraryPage" class="library-page" hidden aria-labelledby="libraryTitle">
+  <div class="library-hero"><div><span class="page-eyebrow">ARCHIVE / 鸣潮图鉴</span><h1 id="libraryTitle">共鸣档案</h1><p>从共鸣者到武器，探索你的下一套搭配。</p><div class="library-counts"><span>64 <small>共鸣者</small></span><span>133 <small>武器</small></span></div></div><div class="library-hero-art" aria-hidden="true"><img src="assets/char/1501.webp" alt=""><img src="assets/char/1502.webp" alt=""><img src="assets/char/1307.webp" alt=""></div></div>
+  <div class="library-toolbar"><div class="library-tabs" role="group" aria-label="图鉴分类"><button type="button" data-library-kind="character" aria-pressed="true">共鸣者</button><button type="button" data-library-kind="weapon" aria-pressed="false">武器</button><button type="button" data-library-kind="boss" aria-pressed="false">矩阵 BOSS</button></div><input id="librarySearch" class="field" type="search" placeholder="搜索名称…" aria-label="搜索图鉴"></div>
+  <div class="library-filter-row"><select id="libraryFilter" class="field" aria-label="属性或武器类型"></select><select id="libraryRarity" class="field" aria-label="稀有度"><option value="">全部星级</option><option value="5">五星</option><option value="4">四星</option><option value="3">三星</option></select><span id="libraryResultsCount"></span></div>
+  <div id="libraryGrid" class="library-grid"></div><p class="library-source">固定版本资料 · 3.7 · 共鸣者与武器使用项目内置目录，图片随站点保存。</p>
+</section>
+<section id="personalPage" class="personal-page" hidden aria-labelledby="personalTitle"><div class="personal-heading"><span class="page-eyebrow">PERSONAL / 我的空间</span><h1 id="personalTitle">个人中心</h1><p>账号资料、实战战绩与自己的云方案。</p></div><div class="personal-game"><div id="personalAccountSummary"></div><button type="button" class="btn" id="personalKuro">库街区账号</button></div>    <details class="sec" id="accountMatrixSection">
+      <summary>库街区 · 实战矩阵</summary>
+      <div id="accountMatrixBody"></div>
+    </details><section class="personal-cloud"><h2>云方案</h2><div id="cloudAccountSlot"></div></section></section>
+<nav id="workspaceNav" class="workspace-nav" aria-label="主导航">
+  <button type="button" data-workspace="library"><span aria-hidden="true">◈</span>图鉴</button>
+  <button type="button" data-workspace="planner" aria-current="page"><span aria-hidden="true">▦</span>编排</button>
+  <button type="button" data-workspace="personal"><span aria-hidden="true">◎</span>个人中心</button>
   <button type="button" id="workspaceNavHide" aria-label="收起导航" title="收起导航">⌄</button>
 </nav>
+<button type="button" id="hpPreviewShow" class="hp-preview-show" aria-controls="hpPreview" aria-expanded="false">▤ 血线预览</button>
+<aside id="hpPreview" class="hp-preview" hidden aria-label="实时血线预览"><div id="hpPreviewHandle" class="hp-preview-head"><b>血线预览 <small>实时</small></b><button type="button" id="hpPreviewClose" aria-label="收起血线预览">—</button></div><div id="hpPreviewBody"></div><button type="button" id="hpPreviewDetails">查看完整推演 ↗</button></aside>
+<div id="libraryDialog" class="library-dialog" hidden><section role="dialog" aria-modal="true" aria-labelledby="libraryDialogTitle"><button type="button" id="libraryDialogClose" aria-label="关闭图鉴详情">✕</button><div id="libraryDialogBody"></div></section></div>
 <button type="button" id="workspaceNavShow" class="workspace-nav-show" aria-label="展开分区导航" aria-expanded="false" aria-controls="workspaceNav" hidden>☰ 导航</button>
 <div id="poolScrim" hidden></div>
 
@@ -2857,10 +2867,7 @@ function bindUnitDrag(scope){
 let poolOpen = false;
 function setPoolOpen(v){
   poolOpen = !!v;
-  if(window.innerWidth<900 && typeof window.matrixNavigate==='function'){
-    if(!poolOpen) pendingCharSlot=null;
-    window.matrixNavigate(poolOpen?'pool':'teams',{fromPool:true});markPicked();return;
-  }
+
   if(!poolOpen) pendingCharSlot=null;
   const p = $("#colPool"), s = $("#poolScrim");
   if(p) p.classList.toggle("open", poolOpen);
@@ -2880,6 +2887,7 @@ function markPicked(){
 function renderAll(){
   invalidateSim();
   renderPool(); renderTeams(); renderWavesKeepScroll(); renderSummary(); renderIntel(); renderAccountMatrix(); renderBossChips(); renderBossPool();
+  if(typeof window.renderPersonalDashboard==="function")window.renderPersonalDashboard();
   applyTeamHighlight(state.hoverTeam);          // 保持悬停高亮
   markPicked();                                 // 重建 DOM 后恢复选中/就绪态
   renderTeamPop();                              // 悬浮窗跟随刷新（未打开时自动跳过）

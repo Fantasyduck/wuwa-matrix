@@ -59,6 +59,7 @@ async function readAccountMatrix(force=false){
   ACCOUNT_MATRIX.pending=task;renderAccountMatrix();return task;
 }
 function renderAccountMatrix(){
+  if(typeof window.renderPersonalDashboard==="function")window.renderPersonalDashboard();
   const box=document.getElementById("accountMatrixBody");if(!box)return;
   const m=ACCOUNT_MATRIX,data=m.account===roleAccountKey()?m.data:null,mode=data?.mode;
   const value=n=>n==null?"—":fmt(n);
