@@ -49,6 +49,8 @@
     if(active!==view)scrolls[active]=window.scrollY;
     if(!options.fromPool){poolOpen=small.matches && view==='pool';if(view!=='pool')pendingCharSlot=null;closeTeamPop();}
     active=view;sync();
+    const route=view==='boss'?'#boss-info':'#planner';
+    if(options.history!==false && location.hash!==route)history.pushState(null,'',route);
     if(view==='boss')window.renderBossAtlas();
     if(small.matches || view==='boss')window.scrollTo({top:scrolls[view]||0,behavior:'instant'});
     if(!small.matches && view!=='boss' && view==='pool' && innerWidth<1360)setPoolOpen(true);
@@ -65,7 +67,9 @@
   document.getElementById('workspaceNavHide').onclick=()=>{collapsed=true;sync();show.focus({preventScroll:true});};
   show.onclick=()=>{collapsed=false;sync();nav.querySelector('[aria-current]').focus({preventScroll:true});};
   document.getElementById('bossAtlasBack').onclick=()=>window.matrixNavigate('teams');
-  small.addEventListener('change',()=>{const wasBoss=active==='boss';setPoolOpen(false);active=wasBoss?'boss':'teams';sync();});
+  small.addEventListener('change',()=>{if(active==='boss'){poolOpen=false;sync();return;}setPoolOpen(false);active='teams';sync();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape' && active==='boss' && !ROLE_DIALOG && !BOSS_DIALOG)window.matrixNavigate('teams');});
+  window.addEventListener('hashchange',()=>window.matrixNavigate(location.hash==='#boss-info'?'boss':'teams',{history:false}));
   window.renderBossAtlas();sync();
+  if(location.hash==='#boss-info')window.matrixNavigate('boss',{history:false});
 })();

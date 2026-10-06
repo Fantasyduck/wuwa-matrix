@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 217600,
-    "sha256": "7f76378798126249c7aca6e6966f988c5335c891ac1cc4b983779ad38bbf2614"
+    "bytes": 216827,
+    "sha256": "06bbbb48da04e47c745dad131a91247c644f536c35c68b7381801fcf010bbbc1"
   },
   "_headers": {
     "bytes": 149,
@@ -88,8 +88,8 @@
     "sha256": "0abb520a976f4eae07e3753f647bc9ee0c772841c77ba19e95521692570a954a"
   },
   "data/workspace_nav.js": {
-    "bytes": 5257,
-    "sha256": "3822c51012aa946de882db569853424727475d935b6b8f40c9a3c2288bf747ef"
+    "bytes": 5620,
+    "sha256": "eb99ca102f33fe6a6fbdba1d1f25f829c7b43ce7a4b0766125089f18c1151efc"
   },
   "styles/boss-view.css": {
     "bytes": 3374,
@@ -3268,7 +3268,7 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 40128,
-    "sha256": "62e079f55c6ddb85c85d1d9d64fcfd98417b0f19729b2f9df4510f2b0465c45c"
+    "bytes": 40185,
+    "sha256": "f25320d07d43ecb08a30f8f31cb27db45d0e5a0b6e453f080e88d1be28f189f5"
   }
 }

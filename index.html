@@ -838,13 +838,6 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
     </div>
 
     <details class="sec">
-      <summary>当期 BOSS · 点击查看</summary>
-      <div style="padding:0 11px 11px">
-        <div class="grid bossgrid" id="bossPool"></div>
-      </div>
-    </details>
-
-    <details class="sec">
       <summary>疲劳参数 · 数据来源</summary>
       <div class="settings" id="settingsGrid">
         <div class="s"><label>角色疲劳上限</label><input type="number" id="setFatigue" step="1" min="1"></div>
@@ -2804,14 +2797,6 @@ function renderSettings(){
    ========================================================================= */
 function renderBossChips(){}
 function renderBossPool(){
-  const box=$("#bossPool"),stage=MX_STAGES[state.stageId];
-  if(!box) return;
-  const list=[...new Map(((stage&&stage.waves)||[]).map(b=>[b.name,b])).values()];
-  box.innerHTML=list.map(b=>{
-    const icon=b.iconUrl || (b.icon?MATRIX_ASSET+b.icon+".webp":"");
-    return `<button class="unit boss-catalog-item" data-boss-stage="${b.id}" title="查看 ${esc(b.name)} 大图和信息">${avatarHTML(icon,b.name)}<div class="nm">${esc(b.name)}</div></button>`;
-  }).join("") || '<div class="empty-note">暂无当期 BOSS 数据</div>';
-  bindBossViews(box);
   if(typeof window.renderBossAtlas==='function') window.renderBossAtlas();
 }
 
