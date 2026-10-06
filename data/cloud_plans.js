@@ -65,8 +65,18 @@ async function cloudSave(title,id=null){
   title=title.trim();if(!title||title.length>80)throw Error('方案名称应为 1–80 个字');
   const payload=cleanCloudPayload(exportPayload());const {auth,db}=await cloudClient();const user=cloudResult(await auth.getUser())?.user;
   if(!user?.id)throw Error('请先登录');const epoch=CLOUD.epoch;
+  let row=id?CLOUD.plans.find(p=>p.id===id):null;
+  if(!id){
+    const matches=cloudResult(await db.from('matrix_plans').select('id,title,revision').eq('owner_id',user.id).eq('title',title).order('updated_at',{ascending:false}).order('id',{ascending:false}).range(0,0));
+    if(epoch!==CLOUD.epoch||CLOUD.user?.id!==user.id)return;
+    row=matches?.[0];
+    if(row){
+      if(!confirm('已存在同名云方案「'+title+'」，是否用当前编排覆盖？')){CLOUD.notice='已取消保存，原方案保持不变';return;}
+      id=row.id;
+    }
+  }
   if(id){
-    const row=CLOUD.plans.find(p=>p.id===id);if(!row)throw Error('方案已变化，请刷新');
+    if(!row)throw Error('方案已变化，请刷新');
     const updated=cloudResult(await db.from('matrix_plans').update({title,payload}).eq('id',id).eq('owner_id',user.id).eq('revision',row.revision).select('id'));
     if(!updated?.length)throw Error('方案已在其他设备修改，请刷新后再保存');
   }else cloudResult(await db.from('matrix_plans').insert({title,payload,owner_id:user.id}).select('id'));
