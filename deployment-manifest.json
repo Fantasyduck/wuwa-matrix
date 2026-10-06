@@ -32,8 +32,8 @@
     "sha256": "1b44c1679760a413d64437f6bfecd677608193e7a71783926fff1912b5447a58"
   },
   "data/cloud_plans.js": {
-    "bytes": 14056,
-    "sha256": "37c7ebfefcb0cb809e8c7b87b1112eeb7a419c79961abd46b8800d358bb7b455"
+    "bytes": 14612,
+    "sha256": "580565b48186a810c88043160ac899442c6fbb7a3e797f5852d5f4810869a1aa"
   },
   "data/echo_portraits.js": {
     "bytes": 7960736,
@@ -2508,8 +2508,8 @@
     "sha256": "1f777db2e8378e6b7031935f52c235eefbafe476644c27e1f5f826a9f14fa09b"
   },
   "assets/vendor/cloudbase-3.4.8.js": {
-    "bytes": 741634,
-    "sha256": "1d7e8199be6c4f9c65c2a650bdbedb4aaed0f3bdef86164191462b3d8e455114"
+    "bytes": 741739,
+    "sha256": "3147288420c07cfe412a6c995ce0681ecdc875f88558789626acaed60248abd9"
   },
   "assets/weapon/21010011.webp": {
     "bytes": 12136,

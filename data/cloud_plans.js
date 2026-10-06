@@ -1,7 +1,16 @@
 /* Personal cloud plans. Game credentials never enter this module's network payloads. */
 const CLOUD_SDK_URL=document.currentScript?.src
-  ?new URL('../assets/vendor/cloudbase-3.4.8.js?bundle=1',document.currentScript.src).href
-  :new URL('assets/vendor/cloudbase-3.4.8.js?bundle=1',document.baseURI).href;
+  ?new URL('../assets/vendor/cloudbase-3.4.8.js?bundle=2',document.currentScript.src).href
+  :new URL('assets/vendor/cloudbase-3.4.8.js?bundle=2',document.baseURI).href;
+function loadCloudSDK(){
+  if(window.MATRIX_CLOUDBASE_SDK?.default)return Promise.resolve(window.MATRIX_CLOUDBASE_SDK.default);
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script');script.src=CLOUD_SDK_URL;script.async=true;
+    script.onload=()=>{script.remove();const sdk=window.MATRIX_CLOUDBASE_SDK?.default;sdk?resolve(sdk):reject(Error('云服务组件未正确加载'));};
+    script.onerror=()=>{script.remove();reject(Error('云服务组件加载失败，请刷新后重试'));};
+    document.head.appendChild(script);
+  });
+}
 const CLOUD={client:null,user:null,plans:[],page:0,size:20,busy:false,error:'',notice:'',verify:null,sendAt:0,epoch:0,loadedId:null};
 function cleanCloudPayload(raw){
   if(!raw||raw.mode!=='singularity'||!MX_STAGES[String(raw.stageId)]||!Array.isArray(raw.teams)||raw.teams.length<1||raw.teams.length>64||!Array.isArray(raw.waves)||raw.waves.length<1||raw.waves.length>200)throw Error('方案格式或矩阵期次不受支持');
@@ -16,7 +25,7 @@ function cleanCloudPayload(raw){
 async function cloudClient(){
   if(!CLOUD.client){
     CLOUD.client=(async()=>{
-      const {default:cloudbase}=await import(CLOUD_SDK_URL);
+      const cloudbase=await loadCloudSDK();
       const cfg=window.MATRIX_CLOUD_CONFIG;if(!cfg?.env||!cfg.publishableKey)throw Error('云方案服务尚未配置');
       const app=cloudbase.init({env:cfg.env,region:cfg.region,accessKey:cfg.publishableKey});
       const auth=typeof app.auth==='function'?app.auth():app.auth;
