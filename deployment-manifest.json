@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 215220,
-    "sha256": "cfa2114c8b1dc25226a20b3bc05770fa8e1edeeb1c8daa97c3759d49ac273eaf"
+    "bytes": 215384,
+    "sha256": "debd9a1dad6b73263f1ca69c5cfcd0daf0dbc045905f42058fc90bdb529807dc"
   },
   "_headers": {
     "bytes": 149,
@@ -26,6 +26,14 @@
   "data/characters.js": {
     "bytes": 11710,
     "sha256": "38d2980419c84024cc3ee91ff7ae7b42f71392274ec8cfd4b04d82b5eadc9350"
+  },
+  "data/cloud_config.js": {
+    "bytes": 1370,
+    "sha256": "1b44c1679760a413d64437f6bfecd677608193e7a71783926fff1912b5447a58"
+  },
+  "data/cloud_plans.js": {
+    "bytes": 13862,
+    "sha256": "03bfe958ca597238dd16193531dafabf8c0fd48d9a3138c83ecf7e0a235cb70f"
   },
   "data/echo_portraits.js": {
     "bytes": 7960736,
@@ -88,8 +96,8 @@
     "sha256": "9cafa0b758605bec43c7900871967ad6e50e7ab22e29268cb47e7ca1d8e2a47e"
   },
   "styles/interface.css": {
-    "bytes": 15801,
-    "sha256": "5150c52dba20456600cea21bda420324cffefa487c16765046177457ace68997"
+    "bytes": 19779,
+    "sha256": "c52177f6da96657b26fe7fa9377730b7c46f77addc8d6ba75040c3a633435dd2"
   },
   "styles/matrix-panel.css": {
     "bytes": 5101,
@@ -2499,6 +2507,10 @@
     "bytes": 1580,
     "sha256": "1f777db2e8378e6b7031935f52c235eefbafe476644c27e1f5f826a9f14fa09b"
   },
+  "assets/vendor/cloudbase-3.4.8.js": {
+    "bytes": 520183,
+    "sha256": "a2d6a06bedcf4a7dbaf4b5f47858d470da3c99f1a14383d688e1ba1f3e1006e7"
+  },
   "assets/weapon/21010011.webp": {
     "bytes": 12136,
     "sha256": "026c4d06daf90fc1a7257ab452099bdd510f0829948d2f566962991b6b44aeb1"
@@ -3030,6 +3042,14 @@
   "assets/weapon/80080009.webp": {
     "bytes": 43176,
     "sha256": "abefc18ee32450bd1a7403fb1a0d73f8e9a934a72b0d8071d68d27e9c2fc550c"
+  },
+  "third_party/cloudbase/dependencies.md": {
+    "bytes": 831,
+    "sha256": "9eb600a5ef5c45f26e3445eabd5cb4562c4d97e2483ce4642467c1a6fb0d278d"
+  },
+  "third_party/cloudbase/LICENSE": {
+    "bytes": 12575,
+    "sha256": "92d7d7d2d4771b84f44e38dc59052faae8e3cd0a234a62de6180a1c6746c979e"
   },
   "third_party/resource_sources/NOTICE.md": {
     "bytes": 832,

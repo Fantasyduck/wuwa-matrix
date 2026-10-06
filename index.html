@@ -763,6 +763,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   <div class="hbtns">
     <button class="btn" id="btnCrawl" title="从 nanoka + 解包仓库实时拉取当期增幅回路与 BOSS 信息（失败时回退内置数据）">⟳ 更新当期数据</button>
     <button class="btn secondary" id="btnKuro" title="用库街区 token 登录，导入账号信息与「已拥有」角色">库街区</button>
+    <button class="btn secondary" id="btnProfile">个人中心</button>
     <button class="btn secondary" id="btnClear" title="清空所有队伍与波次编排（不影响期次数据）">重置编排</button>
     <button class="btn secondary" id="btnExport">导出配置</button>
     <button class="btn secondary" id="btnImport">导入配置</button>
@@ -3858,5 +3859,7 @@ function switchMatrixPeriod(id){
 </script>
 <div id="teamPop" class="tpop" hidden></div>
 <script src="data/interface_motion.js"></script>
+<script src="data/cloud_config.js"></script>
+<script src="data/cloud_plans.js"></script>
 </body>
 </html>
