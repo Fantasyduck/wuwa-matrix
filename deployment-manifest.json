@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 218966,
-    "sha256": "d888de299e635c2ddcb4d94e9f40f06a4815549a9c4b2f14ba5f6fb21a6b98a9"
+    "bytes": 222520,
+    "sha256": "098b4aec9db3f97ba46b54d41a73b2076746cd6ec3b4b9a61f0e9a4928c62033"
   },
   "_headers": {
     "bytes": 149,
@@ -40,8 +40,8 @@
     "sha256": "1b44c1679760a413d64437f6bfecd677608193e7a71783926fff1912b5447a58"
   },
   "data/cloud_plans.js": {
-    "bytes": 14265,
-    "sha256": "1d859089f87ae30aee72f9038c95f027ddad80cbbad24dc483890e8149c24b7d"
+    "bytes": 14450,
+    "sha256": "f2b54e5444d3a14d6073b8613b115b2be0e57557dba1d0d874b8828d11014901"
   },
   "data/echo_portraits.js": {
     "bytes": 7960736,
@@ -3540,7 +3540,11 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 41367,
-    "sha256": "068415a93ec27d8588fde078e3476971b6b67ca7434f559c0bc00e0df9038f51"
+    "bytes": 42240,
+    "sha256": "6d21d11b8b0ddc3064530c4d86a0f05151d0815078e3ab9fa3ea41b4701ccfc9"
+  },
+  "release.json": {
+    "bytes": 36,
+    "sha256": "9216f5adbb958e581966e156e7fd9e14a6af0523cef20b8759efc6e23b297f34"
   }
 }

@@ -5,7 +5,8 @@ const CLOUD_SDK_URL=document.currentScript?.src
 function loadCloudSDK(){
   if(window.MATRIX_CLOUDBASE_SDK?.default)return Promise.resolve(window.MATRIX_CLOUDBASE_SDK.default);
   return new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src=CLOUD_SDK_URL;script.async=true;
+    const url=new URL(CLOUD_SDK_URL);const version=document.querySelector('meta[name="matrix-sdk-version"]')?.content;if(version&&version!=='development')url.searchParams.set('v',version);
+    const script=document.createElement('script');script.src=url.href;script.async=true;
     script.onload=()=>{script.remove();const sdk=window.MATRIX_CLOUDBASE_SDK?.default;sdk?resolve(sdk):reject(Error('云服务组件未正确加载'));};
     script.onerror=()=>{script.remove();reject(Error('云服务组件加载失败，请刷新后重试'));};
     document.head.appendChild(script);

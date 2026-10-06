@@ -2,6 +2,45 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<meta name="matrix-release" content="7131d74943cf6903">
+<meta name="matrix-sdk-version" content="3147288420c07cfe">
+<script>
+/* Kept inline so an older HTML entry can discover a new release independently of cached JS. */
+(()=>{
+  const current=document.querySelector('meta[name="matrix-release"]').content;
+  if(!/^https?:$/.test(location.protocol)||current==='development')return;
+  let edited=false,busy=false,lastCheck=0,initial=true;
+  document.addEventListener('input',()=>edited=true,{capture:true});
+  document.addEventListener('change',()=>edited=true,{capture:true});
+  const refresh=version=>{const url=new URL(location.href);url.searchParams.set('_release',version);location.replace(url.href);};
+  const notice=version=>{
+    if(document.getElementById('releaseUpdateNotice'))return;
+    const show=()=>{
+      const box=document.createElement('div');box.id='releaseUpdateNotice';box.setAttribute('role','status');
+      box.style.cssText='position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:2000;max-width:calc(100vw - 24px);display:flex;align-items:center;gap:12px;padding:12px 18px;border:1px solid #d9c9e8;border-radius:14px;background:#f8f4ff;color:#645078;box-shadow:0 8px 30px #30213d25;font:13px/1.6 sans-serif;';
+      const text=document.createElement('span');text.textContent='发现新版本，刷新后即可使用。';
+      const button=document.createElement('button');button.type='button';button.textContent='刷新';button.style.cssText='flex-shrink:0;border:0;border-radius:8px;padding:7px 12px;background:#806299;color:white;cursor:pointer;';button.onclick=()=>refresh(version);
+      box.append(text,button);document.body.append(box);
+    };
+    if(document.body)show();else document.addEventListener('DOMContentLoaded',show,{once:true});
+  };
+  async function check(){
+    if(busy||document.visibilityState==='hidden'||Date.now()-lastCheck<30000)return;
+    busy=true;lastCheck=Date.now();const first=initial;initial=false;
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+    try{
+      const url=new URL('release.json',location.href);url.searchParams.set('_check',String(Date.now()));
+      const response=await fetch(url,{cache:'no-store',signal:controller.signal});if(!response.ok)return;
+      const data=await response.json(),version=data.version;if(!/^[a-f0-9]{16}$/.test(version)||version===current)return;
+      // One cache-busting navigation per release; avoid reload loops when a CDN is still stale.
+      if(first&&!edited&&new URL(location.href).searchParams.get('_release')!==version)refresh(version);else notice(version);
+    }catch(e){/* Offline/update-check failure never blocks the planner. */}
+    finally{clearTimeout(timer);busy=false;}
+  }
+  check();window.addEventListener('pageshow',check);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>鸣潮 · 终焉矩阵 队伍排布器</title>
 <style>
@@ -740,14 +779,14 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   body.reveal .col,body.reveal .teams .team,body.reveal .sum,body.reveal header,body.reveal .roundgroup{animation:none!important}
 }
 </style>
-<link rel="stylesheet" href="styles/polish.css">
-<link rel="stylesheet" href="styles/role-material.css">
-<link rel="stylesheet" href="styles/echo-score.css">
-<link rel="stylesheet" href="styles/boss-view.css">
-<link rel="stylesheet" href="styles/buff-picker.css">
-<link rel="stylesheet" href="styles/matrix-panel.css">
-<link rel="stylesheet" href="styles/interface.css">
-<link rel="stylesheet" href="styles/workspace-nav.css">
+<link rel="stylesheet" href="styles/polish.css?v=40cefe47fd73aacf">
+<link rel="stylesheet" href="styles/role-material.css?v=2c5d4a3202143240">
+<link rel="stylesheet" href="styles/echo-score.css?v=9cafa0b758605bec">
+<link rel="stylesheet" href="styles/boss-view.css?v=11159bd749b5657b">
+<link rel="stylesheet" href="styles/buff-picker.css?v=54cabcacf5533d70">
+<link rel="stylesheet" href="styles/matrix-panel.css?v=345de824802717e7">
+<link rel="stylesheet" href="styles/interface.css?v=4ffcaa167303725b">
+<link rel="stylesheet" href="styles/workspace-nav.css?v=82f973f97df14f58">
 </head>
 <body>
 
@@ -888,23 +927,23 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <div id="roleDlg" hidden role="dialog" aria-modal="true" aria-labelledby="roleDialogTitle"><div class="role-dialog-card" id="roleDialogBody"></div></div>
 <div id="buffDlg" class="buff-dialog" hidden><section class="buff-dialog-card" role="dialog" aria-modal="true" aria-labelledby="buffDialogTitle"><div id="buffDialogBody"></div></section></div>
 <div id="bossDlg" class="boss-dialog" hidden><section class="boss-dialog-card" role="dialog" aria-modal="true" aria-labelledby="bossDialogTitle"><button id="bossDialogClose" class="boss-dialog-close" aria-label="关闭 BOSS 信息">✕</button><div id="bossDialogBody"></div></section></div>
-<script src="data/characters.js"></script>
-<script src="data/character_details.js"></script>
-<script src="data/character_tags.js"></script>
-<script src="data/character_portraits.js"></script>
-<script src="data/weapons.js"></script>
-<script src="data/weapon_details.js"></script>
-<script src="data/resource_assets.js"></script>
-<script src="data/echo_portraits.js"></script>
-<script src="data/resource_loader.js"></script>
-<script src="data/echo_score_rules.js"></script>
-<script src="data/echo_score.js"></script>
-<script src="data/role_config.js"></script>
-<script src="data/account_matrix.js"></script>
-<script src="data/monsters.js"></script>
-<script src="data/matrix.js"></script>
-<script src="data/matrix_hp.js"></script>
-<script src="data/matrix_boss_details.js"></script>
+<script src="data/characters.js?v=38d2980419c84024"></script>
+<script src="data/character_details.js?v=2f59cf99b31bc126"></script>
+<script src="data/character_tags.js?v=07ae8ae340361b19"></script>
+<script src="data/character_portraits.js?v=7d6f8031055ed6b5"></script>
+<script src="data/weapons.js?v=0abb520a976f4eae"></script>
+<script src="data/weapon_details.js?v=99e881487902c110"></script>
+<script src="data/resource_assets.js?v=d17538af02045a2c"></script>
+<script src="data/echo_portraits.js?v=d22db8e2dabc19e2"></script>
+<script src="data/resource_loader.js?v=86345a44b87fe4c2"></script>
+<script src="data/echo_score_rules.js?v=e8ab3621bb95e453"></script>
+<script src="data/echo_score.js?v=ee42726ac12ec880"></script>
+<script src="data/role_config.js?v=15ee969eb8dd4db8"></script>
+<script src="data/account_matrix.js?v=8fb4d5634f878766"></script>
+<script src="data/monsters.js?v=7c20bb1f1fc291cb"></script>
+<script src="data/matrix.js?v=db6f2fcf32fa7d60"></script>
+<script src="data/matrix_hp.js?v=28467836f8747c65"></script>
+<script src="data/matrix_boss_details.js?v=560869916ad65501"></script>
 <script>
 /* =========================================================================
    基础常量
@@ -3844,11 +3883,11 @@ function switchMatrixPeriod(id){
 })();
 </script>
 <div id="teamPop" class="tpop" hidden></div>
-<script src="data/interface_motion.js"></script>
-<script src="data/workspace_nav.js"></script>
-<script src="data/character_archive.js"></script>
-<script src="data/weapon_archive.js"></script>
-<script src="data/cloud_config.js"></script>
-<script src="data/cloud_plans.js"></script>
+<script src="data/interface_motion.js?v=1a192faa3822b6c5"></script>
+<script src="data/workspace_nav.js?v=b7eb10ee425513ec"></script>
+<script src="data/character_archive.js?v=c359fc185b9a1cdf"></script>
+<script src="data/weapon_archive.js?v=b9b08d6f03f3ee6a"></script>
+<script src="data/cloud_config.js?v=1b44c1679760a413"></script>
+<script src="data/cloud_plans.js?v=f2b54e5444d3a14d"></script>
 </body>
 </html>
