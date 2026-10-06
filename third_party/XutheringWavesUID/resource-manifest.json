@@ -1,0 +1,278 @@
+{
+  "1102/calc.json": {
+    "sha256": "a34cfa0b5612ec4bacca8dda2ea1d5c6eed6be7b90a0e0daa1e5225053dd4b48",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1103/calc.json": {
+    "sha256": "b23e59ccf247ccab90a5be631cb2ab19f771ba0e7607465ebf73565f28e47de4",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1104/calc.json": {
+    "sha256": "c7f0757268f37c8d30ea4c51e93241ce603a0e3269f6c81be9a7372eab6e9154",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1105/calc.json": {
+    "sha256": "5b914f27ede781094dae8f1fa44a4b94ba5818a9683aa844a2167fe6173f8375",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1106/calc.json": {
+    "sha256": "e86cb3fae1bf826c1065cf2988fcf71bddd94b88be5a106744353c66851f2955",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1107/calc.json": {
+    "sha256": "b155286609085415c9d3d6dbc1e2d111458e1df44515206a44e84957231de08b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1108/calc.json": {
+    "sha256": "484966af76d2b6c2ed43945c7debd5fd9b0f4a15951c29498df865f1245aad2e",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1109/calc-featherfall.json": {
+    "sha256": "cb08cec9e4cf812cb54269380796005ca30201f93f68235ec2e0ab55929d6b18",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1109/calc-phantom-featherfall.json": {
+    "sha256": "29745fd73e50477b07c69bcf41b1596f300e94bf0b4d14afab83c4935140a9a8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1109/calc-phantom.json": {
+    "sha256": "a1e01d5c1bd32d00037003f23eaf9d60ed9e812bd945ac85c3e338daafba6690",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1109/calc.json": {
+    "sha256": "edc0a7555d377b9e313101aecc4ab1b89591e0047b67ae77f609dae3339f4ced",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1109/condition.json": {
+    "sha256": "0a55d5d15a4e02127503d2b62557c8889ba02fd45c876e9102e19a90b774ffad",
+    "modified": "Wed, 08 Jul 2026 23:30:21 GMT"
+  },
+  "1110/calc.json": {
+    "sha256": "406d4d3c5c25a56c933df263b152cf14d1563d50c017dec70b8cd039f38b19ec",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1202/calc.json": {
+    "sha256": "89a3c807c7b9c6c8f6931ec3004067329b218cf84a183545421fefaff3c85d27",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1203/calc.json": {
+    "sha256": "b2689421367fd86528509558b3dfc42839061e3dd1d11b646ae8d024e3bc643d",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1204/calc.json": {
+    "sha256": "6dbdf0a70a250b8ac97e34c4d3b17b176fd6f3c3846297574efcf189d1978447",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1205/calc.json": {
+    "sha256": "538056373ce7171cad12515ba922db6b5c4010c78df11f0fc7921b8970ad2d24",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1206/calc.json": {
+    "sha256": "dc96b6d5823791e48ee03a9b85f6be1e7269b80fbe70e6136a624d4025cbff95",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1207/calc.json": {
+    "sha256": "86d52cf87e46735047ae1e5e3d0aec444a3ccc7b0bb846de7bd1bd8f63665ee0",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1208/calc.json": {
+    "sha256": "54f079895c361d8d40b7f8e7965eb37a36243ca924de878ca2ab7472585fa4b8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1209/calc.json": {
+    "sha256": "5bf14ccf0fb4ce51ef54e6d1cd2afeb1877b1b101a47773474198c26e639ed7d",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1210/calc.json": {
+    "sha256": "276bf06e9ade0e23fec81973c774f079d809cced1e8424d8c192c30d1816bc07",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1211/calc.json": {
+    "sha256": "d3ed11c6d6830543e8c8649b28ddc7fb1521acd4dfa1f25f7bf430b689619739",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1212/calc.json": {
+    "sha256": "ee40e9f624bcbb3d5d2a8b189d3f0c0ce59f1f73dbac72eeb91378cb886a160b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1301/calc.json": {
+    "sha256": "68a2a1c5be0b1ffb6ee13281d26b7ef4e65fe9270364fa216d5d2b4895767e77",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1302/calc.json": {
+    "sha256": "e150c32b5410e5c44bff631808d135d05f23453bc5f055fc03bc599dfd53d81a",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1303/calc.json": {
+    "sha256": "4b9d29852f7e98c12d2fa5fc4bfaf9a88b178f91d58a900df3f673baa18f9f4a",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1304/calc.json": {
+    "sha256": "dfd9e0d77ee8e943a6ce89191c7b13c467c25587fc0d3aee34d015a199e903ca",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1305/calc.json": {
+    "sha256": "e63a4fb1acccfe6e26991eae5f57e894acc6f5f67a5389278f6d5cf846d1d996",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1306/calc.json": {
+    "sha256": "4617bc5b6176bec8a246f910ed8643f8594fa05dddafd35a3513f24adc8dfb88",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1307/calc.json": {
+    "sha256": "eea9f3056c943178435f77a307a1338f6fee34d609b5e528b043ed0b07d4a55f",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1308/calc.json": {
+    "sha256": "c1ffac48f4d75950c227f4fd9d6bf80f6f3bc5fbbbf87842b2850033249897c0",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1309/calc.json": {
+    "sha256": "66599d8723f64b0652dfa3d53b8379b08a515f6b2e7dd88e068b083251b88b5b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1310/calc.json": {
+    "sha256": "66599d8723f64b0652dfa3d53b8379b08a515f6b2e7dd88e068b083251b88b5b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1311/calc.json": {
+    "sha256": "bbbbb2cd3c9ac9b4b690fbb87987a692e6077d957f9bfeb29d62ffe0ca148ba2",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1312/calc.json": {
+    "sha256": "31dab556406e4824c6d77b38ae15b618979f6090c35c1024be2d146afa82b6ec",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1402/calc.json": {
+    "sha256": "fc8f0fb74483ff9d8b7fe69b96a9bda143dbf4ba5172cfaed763d5963d5dff23",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1403/calc.json": {
+    "sha256": "14f4be7c56a42c6d76ed05f28cdd7b14bab8647aa91fe2d6845a956084c22cb9",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1404/calc.json": {
+    "sha256": "dbeb47a32d8465e9c365c6660e859d5bb1f821f876e7c8fc5375561157dae228",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1405/calc.json": {
+    "sha256": "665c31b8e1fca2d343f00a1d9a05728e4a49297566a4f4d763af766c0b7d0510",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1406/calc.json": {
+    "sha256": "3ee2e7c72788f0824697fa435cbaad44870b9647278141e3ef737bf72c89c366",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1407/calc.json": {
+    "sha256": "6f9b7951cf52b5dba74f28b9033f777113853fd95029199175e495886081da10",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1408/calc.json": {
+    "sha256": "3ee2e7c72788f0824697fa435cbaad44870b9647278141e3ef737bf72c89c366",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1409/calc.json": {
+    "sha256": "a20fd10b1332cc3df947c0256421fb7733df8002021869fb8764559411e3b457",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1410/calc.json": {
+    "sha256": "42a7e991eb1099a78862887959796913986c46e4ad06cf804f71d71671765abd",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1411/calc.json": {
+    "sha256": "d1f8f08e140f3289c3492162df1fdb664ad16a4288095f0e48a6852f8398e37d",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1412/calc.json": {
+    "sha256": "e0a0070fd50d173339c09f5d3aa496f80edf0d2fef94061eb64c94533616c952",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1413/calc.json": {
+    "sha256": "c2d483b97fbb6ad3deea5e4bb47ac6bd10200d13e941753ae796c7a6f27e6b78",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1501/calc.json": {
+    "sha256": "0979267f9f2af507ef67ac8e87c53134f9113aa058bcfe4be7d166ab2aeb41b0",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1502/calc.json": {
+    "sha256": "0979267f9f2af507ef67ac8e87c53134f9113aa058bcfe4be7d166ab2aeb41b0",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1503/calc.json": {
+    "sha256": "9bb5a5753dc099003905b7f863004d20f3c07010352501ac7188f50edf1bfd54",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1504/calc.json": {
+    "sha256": "fc7ca3c7b5a71f1e01270f2b9dc86c264b134d32fd75b30e7bb065d2f2098f2c",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1505/calc.json": {
+    "sha256": "017d14ecb9035b882861b3299f2c272551f36122e3f4123a129af4a45eedf4c8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1506/calc.json": {
+    "sha256": "5716b0dbbe2cd903233359613e5a978d610306f64faa87acf5f60e671a225c9d",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1507/calc.json": {
+    "sha256": "91adbdf447a6c59b8a78905e7b62dbf853a21c6b05a2ef2a212c1beaec58c54b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1508/calc.json": {
+    "sha256": "51b9d643390e93423cc993305097ff27ca29ea789e2a95c4b6c0dac8610950b0",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1509/calc.json": {
+    "sha256": "18a62abb1a492b6ad401088c2b51a796f65e0be5490c3b15dcb2ad9b71c64f28",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1510/calc.json": {
+    "sha256": "5ae0e24540c521c8eb5b4f7db8a12e9bbbb3fd4090c147a5a46f8ea5f9b7c2c8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1511/calc.json": {
+    "sha256": "66dd94c933218db573ff3210bd528084b9567b3e1549e0ed953e5b8cb5e3cb0b",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1601/calc.json": {
+    "sha256": "79e2e824703892dd809f2a9ea3047b145a83f2dcfe83b19fe95c0f5569bb0b66",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1602/calc.json": {
+    "sha256": "6b0d80925890602820c2f0a92823da126e3b590e05480e44d6725a7c3340924a",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1603/calc.json": {
+    "sha256": "7b92d957958441ed3aae1107b55e3f495821713c721c657eab04fe8a6bbb619c",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1604/calc.json": {
+    "sha256": "d07486f957240514a4bc56bf20c18c94597a91d1c779d39a97b4f3d7f79c47e8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1605/calc.json": {
+    "sha256": "d07486f957240514a4bc56bf20c18c94597a91d1c779d39a97b4f3d7f79c47e8",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1606/calc.json": {
+    "sha256": "fa3e4503bd3cc3ca784f3526fcdbc27e2b82e7bf92f1f894861e7542153cdcd6",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1607/calc.json": {
+    "sha256": "7b3a0ef6f6d1cd13ef9c77ebb60152adb87f9b905a05578ebc57af8f448c7c13",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1608/calc.json": {
+    "sha256": "cb97d9545743896317a84f0f7f49e3f83e7ac25f2e9beac4ff532e6d8be9c6a7",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "1610/calc.json": {
+    "sha256": "84821006cb046f26237c85a135c16c50cd622e51cf67f2c0b780ac6998aa2180",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  },
+  "default/calc.json": {
+    "sha256": "66d1b3ff1f20f7b0bbd46c9b2d004cbb254fbb6e94f0bc657c19fcfe74601144",
+    "modified": "Tue, 29 Sep 2026 15:48:21 GMT"
+  }
+}

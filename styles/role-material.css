@@ -1,0 +1,90 @@
+/* 雾蓝金属、磨砂玻璃与角色配置展示。 */
+:root{--bg:#dfe6f0;--panel-2:#edf2fa;--role-ink:#244269;--role-gold:#b99559}
+body{background:radial-gradient(ellipse at 0% 5%,rgba(96,139,174,.22),transparent 45%),radial-gradient(ellipse at 95% 80%,rgba(132,111,170,.17),transparent 50%),linear-gradient(140deg,#dce5ee,#e6e9f2 60%,#dae5ed)}
+header{background:linear-gradient(115deg,rgba(24,42,64,.96),rgba(44,59,89,.91));border-bottom-color:rgba(255,255,255,.18);box-shadow:0 6px 28px rgba(21,38,63,.17)}
+.brand{color:#f0f5ff}.brand small{color:#b5c6df}
+.brand .mark{background:linear-gradient(135deg,#799ec5,#727dcc);box-shadow:0 3px 14px rgba(152,186,223,.18)}
+header .tabs{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.13)}
+header .tabs button{color:#c2d0e5}header .tabs button.on{color:#294969;background:#f0f5ff}
+.hbtns .btn{background:rgba(255,255,255,.075);color:#dae5f5;border-color:rgba(206,226,251,.23)}
+.hbtns .btn:hover{color:#fff;background:rgba(255,255,255,.17);border-color:rgba(206,226,251,.45)}
+.col{background:linear-gradient(145deg,rgba(245,248,253,.94),rgba(228,236,247,.93));border-color:rgba(255,255,255,.8);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 50px -25px rgba(35,59,98,.3)}
+.col-head{background:linear-gradient(125deg,rgba(236,243,253,.97),rgba(225,232,247,.93));border-bottom-color:rgba(159,178,207,.25)}
+.team{background:linear-gradient(150deg,#f8fbff,#eaf0fa);border-color:#d2ddeb;box-shadow:0 1px 0 #fff inset,0 4px 16px -10px rgba(45,65,102,.15)}
+.team-top{background:linear-gradient(120deg,#f3f7fd,#e8eef9)}
+.team-foot{background:rgba(227,235,248,.75)}
+.col-foot{background:#e8eef7}.roundgroup{background:rgba(246,249,255,.8)}
+.rg-head{background:linear-gradient(110deg,#f0f5fc,#e7eef8)}
+.member-unit{min-width:0}.member-unit>.slot{width:100%;position:relative}
+.role-chain{position:absolute;right:4px;top:4px;z-index:2;display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:8px;background:linear-gradient(135deg,#546c9b,#303d65);border:1px solid rgba(255,255,255,.8);color:#fff;font:italic 800 16px/1 Georgia,serif;box-shadow:0 3px 8px rgba(15,27,60,.28);pointer-events:none}
+.slot .del{top:auto;bottom:25px;right:4px}
+.weapon-mini{display:flex;align-items:center;gap:5px;margin:6px 0 0;padding:3px 4px;border:1px solid rgba(191,207,228,.6);border-radius:9px;background:rgba(222,232,247,.6);min-height:36px;min-width:0}
+.weapon-mini>span:last-child{font-size:9px;font-weight:600;color:#45607d;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weapon-mini-art{width:30px;height:30px;position:relative;flex:0 0 30px;border-radius:7px;background:linear-gradient(145deg,#edf2f8,#ccd9e9)}
+.weapon-mini-art img{width:100%;height:100%;object-fit:contain}
+.weapon-mini-art b{position:absolute;right:-3px;top:-3px;display:grid;place-items:center;border-radius:5px;width:15px;height:15px;background:#a18148;color:#fff;font-size:10px;border:1px solid #f7ecd8}
+.weapon-placeholder{display:grid;place-items:center;height:100%;color:#6c83a4;font-size:24px}
+.team-result{display:flex;flex-direction:column;gap:5px;min-width:0}
+.team-dps{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.team-dps small{font-size:9px;letter-spacing:.3px;color:#667d9e;font-weight:600}
+.team-dps b{font:italic 800 24px/1.15 Georgia,"Times New Roman",serif;letter-spacing:-.8px;color:#365c96;background:linear-gradient(100deg,#275d93,#7870b5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 0 rgba(255,255,255,.7))}
+.team-dps i{font-size:12px;letter-spacing:0;font-weight:600}
+#roleDlg{position:fixed;inset:0;z-index:220;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(17,30,51,.44);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);animation:fadeIn .2s ease-out;overscroll-behavior:contain}
+#roleDlg[hidden]{display:none}
+.role-dialog-card{width:min(820px,100%);max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;background:linear-gradient(135deg,rgba(244,250,255,.95),rgba(225,234,247,.91));-webkit-backdrop-filter:blur(28px);backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.8);border-radius:26px;box-shadow:0 1px 0 #fff inset,0 35px 100px -20px rgba(10,26,55,.45);animation:surfaceEnter .28s var(--motion)}
+.role-hero{display:flex;gap:20px;align-items:center;padding:24px;position:relative;background:radial-gradient(ellipse at 100% 0%,rgba(163,184,229,.3),transparent 65%),linear-gradient(120deg,rgba(255,255,255,.3),rgba(217,230,248,.4));border-bottom:1px solid rgba(167,187,214,.28)}
+.role-portrait{width:90px;height:110px;object-fit:cover;border-radius:16px;box-shadow:0 8px 24px rgba(50,75,116,.18);border:1px solid rgba(255,255,255,.8)}
+.role-eyebrow{font-size:9px;letter-spacing:2px;font-weight:700;color:#738aaa}
+.role-hero h2{font-size:25px;letter-spacing:.4px;margin:4px 0;color:var(--role-ink)}
+.role-hero p{margin:0 0 8px;color:#5a7594;font-size:12px}
+.role-source{font-size:10px;background:rgba(108,139,184,.12);color:#496889;border:1px solid rgba(139,164,199,.25);padding:3px 8px;border-radius:999px}
+.role-close{position:absolute;right:18px;top:18px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.48);border-radius:12px;width:38px;height:38px;color:#5a7294}
+.role-close:hover{background:#fff;color:var(--bad)}
+.role-toolbar{padding:15px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.role-tabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(158,181,212,.16);border:1px solid rgba(191,208,231,.45)}
+.role-tabs button{background:transparent;border:0;border-radius:9px;padding:7px 16px;color:#5c7392;font-weight:600;transition:background .2s,color .2s}
+.role-tabs button.on{background:#f6faff;color:#315f94;box-shadow:0 2px 9px rgba(63,90,129,.13)}
+.role-content{padding:8px 24px 24px;animation:surfaceEnter .22s var(--motion)}
+.role-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.role-config-grid>label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#56708e}
+.role-config-grid .wide{grid-column:1/-1}
+.role-config-grid select,.role-config-grid input{font:inherit;padding:10px 12px;min-width:0;width:100%;border:1px solid #c5d3e6;background:rgba(255,255,255,.53);border-radius:11px;color:#29496a}
+.role-config-grid select:focus,.role-config-grid input:focus{outline:2px solid #9bb6df;outline-offset:2px}
+.role-weapon-preview{display:flex;align-items:center;gap:10px;min-width:0;padding:8px;background:rgba(255,255,255,.27);border-radius:12px}
+.role-weapon-preview img,.role-weapon-preview>span{width:54px;height:54px;object-fit:contain;flex-shrink:0}
+.role-weapon-preview>span{display:grid;place-items:center;color:#6583a7;font-size:34px}
+.role-weapon-preview b{display:block;font-size:12px;color:#325477}.role-weapon-preview small{display:block;color:#7087a1;font-size:10px;margin-top:4px}
+.role-local-note{margin:8px 24px;color:#607996;font-size:11px;line-height:1.8}
+.role-content>.role-local-note{margin:18px 0 10px}
+.role-read-error{margin:0 24px 12px;border:1px solid #ead3ba;background:rgba(255,241,220,.65);color:#976129;border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.7}
+.role-empty{padding:28px 20px;border:1px dashed #b7c9df;border-radius:14px;color:#627c9a;font-size:12px;line-height:1.8;text-align:center;background:rgba(255,255,255,.2)}
+.role-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.role-stats>div{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:13px 15px;border:1px solid rgba(255,255,255,.8);border-radius:13px;background:rgba(255,255,255,.36)}
+.role-stats span{font-size:12px;color:#59728f}.role-stats b{font:700 19px Georgia,serif;color:#345d8b}
+.role-echoes{display:flex;flex-direction:column;gap:12px}
+.role-echoes article{display:flex;align-items:flex-start;gap:14px;padding:14px;border-radius:15px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.34)}
+.role-echoes article>img,.echo-placeholder{width:60px;height:60px;object-fit:contain;flex-shrink:0;background:rgba(171,190,216,.16);border-radius:12px}
+.echo-placeholder{display:grid;place-items:center;font-size:34px;color:#7894b5}
+.role-echoes article>div{min-width:0;flex:1}.role-echoes h3{font-size:14px;margin:0 0 4px;color:#315375}.role-echoes p{font-size:10px;color:#6a82a0;margin:0 0 8px}
+.echo-props{display:flex;gap:5px;flex-wrap:wrap}.echo-props span{background:rgba(164,186,215,.12);border:1px solid rgba(174,192,219,.26);border-radius:6px;padding:3px 7px;font-size:10px;color:#5e7795}
+.echo-props .main{background:rgba(179,158,117,.11);color:#8b6d3c;border-color:rgba(188,166,128,.26)}
+@media(max-width:767px){
+  .weapon-mini{gap:3px;padding:2px;min-height:32px}.weapon-mini-art{width:26px;height:26px;flex-basis:26px}
+  .weapon-mini>span:last-child{font-size:8px}
+  .team-dps{gap:5px}.team-dps b{font-size:23px}.team-dps small{font-size:8px}
+  #roleDlg{padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));align-items:center}
+  .role-dialog-card{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);border-radius:22px}
+  .role-hero{padding:18px 15px;gap:13px}.role-portrait{width:68px;height:88px;border-radius:12px}
+  .role-eyebrow{font-size:8px;letter-spacing:1px}.role-hero h2{font-size:21px}.role-hero p{font-size:11px}
+  .role-close{top:12px;right:12px;width:36px;height:36px}.role-hero>div{padding-right:24px}
+  .role-toolbar{padding:12px 15px;gap:8px}.role-tabs button{padding:8px 12px}
+  .role-toolbar .btn{font-size:11px;padding:5px 7px;min-height:36px}
+  .role-content{padding:8px 15px 18px}.role-config-grid{gap:12px}
+  .role-config-grid select,.role-config-grid input{font-size:16px;padding:9px 8px}
+  .role-weapon-preview{grid-column:1/-1}.role-local-note{margin-inline:15px}
+  .role-read-error{margin-inline:15px;font-size:11px}
+  .role-stats>div{padding:11px;flex-wrap:wrap}.role-stats b{font-size:18px}
+  .role-echoes article{padding:11px;gap:10px}.role-echoes article>img,.echo-placeholder{width:44px;height:44px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+

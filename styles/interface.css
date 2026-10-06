@@ -1,0 +1,164 @@
+/* 鸣算屋启发的字体层级、暖金细节与玻璃材质；保持业务与血条几何不变。 */
+:root{
+  --font-body:"Noto Sans SC","PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  --font-display:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --font-number:"Bahnschrift","DIN Alternate","Segoe UI",sans-serif;
+  --bg:#e9e9ed;--panel-2:#f2f2f7;--accent:#6852b2;--accent-soft:#ece7f8;
+  --border:#dedee8;--border-2:#c3b9de;--muted:#596078;--faint:#72788c;
+  --motion:cubic-bezier(.22,1,.36,1);--gilt:#cfb58a;
+}
+body{
+  font-family:var(--font-body);color:#2d3347;
+  background:radial-gradient(ellipse at 4% 0%,#c6c5e459,transparent 48%),radial-gradient(ellipse at 96% 80%,#d5b9972e,transparent 48%),linear-gradient(135deg,#e5e6ee,#eff0f3 55%,#e7e5eb);
+  background-attachment:fixed;
+}
+button,input,select,textarea{font-family:var(--font-body)}
+header{
+  background:linear-gradient(110deg,#1e2234f5,#343149ed);border-bottom:1px solid #cfb58a4a;
+  box-shadow:0 8px 32px #1b20351f;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  padding:15px 22px;
+}
+.brand{font-family:var(--font-display);font-size:18px;letter-spacing:1px;color:#f5f0e8}
+.brand small{font-family:var(--font-body);letter-spacing:.3px;color:#bdb8cf}
+.brand .mark{font-family:var(--font-display);color:#fbf6ef;background:linear-gradient(140deg,#9f8770,#665983);border:1px solid #e8d5b454;box-shadow:0 4px 16px #0002}
+header .tabs{border-color:#cfb58a30;background:#ffffff08}
+.tabs .mode-only{color:#e7d2b1;background:#cfb58a16;font-size:12px;letter-spacing:1px}
+.hbtns .btn{border-color:#ffffff2b;background:#ffffff0a;color:#e5e1ef;border-radius:10px;min-height:34px}
+.hbtns #btnPoster{color:#f7e5c9;background:#cfb58a1a;border-color:#cfb58a75}
+.layout{gap:18px;padding:20px}
+.col{border-radius:22px;background:linear-gradient(135deg,#ffffffde,#f1f1f8e6);border:1px solid #ffffffd9;box-shadow:0 1px 0 #fff inset,0 12px 34px -20px #26223e45}
+.col::before{background:linear-gradient(180deg,#bfb1d50c,transparent)}
+.col-head{padding:16px 14px;background:linear-gradient(110deg,#faf9fcf5,#efeef5f0);border-bottom-color:#dedbe980}
+.col-head h2{font:700 17px/1.4 var(--font-display);letter-spacing:1px;color:#343047}
+.col-head h2::before{height:16px;width:3px;background:linear-gradient(#a38bb6,#d0b286)}
+.col-head .cnt{font-variant-numeric:tabular-nums;color:#777387}
+.col-body{padding:14px}
+.col-foot{background:#f0eef5}
+.field{background:#ffffffc9;border-color:#dad6e5;min-height:38px}
+.chip{border-color:#ddd8e9;color:#605970;background:#faf9fc;border-radius:9px}
+.chip.on{color:#fff;background:#6852b2;border-color:#6852b2;box-shadow:0 3px 9px #6852b226}
+.btn.ghost{color:#675388;border-color:#d8cfe5;background:#ffffffa3}
+.team{
+  background:linear-gradient(145deg,#fffefa,#f4f3f9);border:1px solid #ded9e8;border-radius:18px;
+  box-shadow:0 1px 0 #fff inset,0 5px 20px -16px #30234338;
+}
+.team-top{padding:11px 12px;background:linear-gradient(100deg,#fcfaf8,#f0edf7);border-bottom-color:#e4deec}
+.team-name{font-family:var(--font-display);font-size:15px;font-weight:700;color:#363044}
+.team-seq{border-radius:7px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.team-order{padding-top:10px}
+.order-btn,.order-jump select{border-color:#e0dbe9;color:#6e647e;background:#ffffffb3;transition:background .2s,transform .2s,border-color .2s}
+.slots{gap:10px;padding:14px 12px 12px}
+.slot{background:linear-gradient(145deg,#ebe6f2,#f8f7fb);border-color:#cfc5df;border-radius:13px;transition:box-shadow .25s,border-color .25s}
+.slot:not(.filled){color:#8a789f}
+.weapon-mini{background:#e9e5f169;border-color:#d9d1e3}
+.weapon-mini>span:last-child{color:#6b607c}
+.team-foot{background:linear-gradient(105deg,#f1eef6d9,#f9f7f2bd);padding:12px;border-top-color:#e4deec}
+.team-score{font-variant-numeric:tabular-nums}
+.team-dps small{color:#7b7288;letter-spacing:.7px}
+.team-dps b{background:linear-gradient(100deg,#54478b,#a17f67);-webkit-background-clip:text;background-clip:text}
+.team-foot .open-hint{color:#716184;font-size:11px}
+.addbtn{border-color:#c8bbda;background:#ede8f480;color:#685583;border-radius:13px;min-height:44px;transition:background .24s,border-color .24s,transform .24s}
+.sum{background:radial-gradient(ellipse at 100% 0%,#a589aa3b,transparent 70%),linear-gradient(140deg,#302b43,#202336);border-bottom:1px solid #d1b58b52;padding:20px}
+.sum-total b{font-family:var(--font-number);font-weight:800;font-variant-numeric:tabular-nums;font-size:clamp(34px,2.7vw,44px);letter-spacing:-1.3px;color:#f9f3e9}
+.sum-total>span:first-of-type{color:#d4cada}
+.sum .stat{border-color:#ffffff20;background:#ffffff09;border-radius:10px}
+.sum .stat b{font-family:var(--font-number);font-variant-numeric:tabular-nums;color:#f6f0e7}
+.sum .contrib .row{background:#ffffff08;border-color:#ffffff1a}
+#colWaves details.sec>summary{background:linear-gradient(120deg,#f2eef7,#fcfaf6);color:#625370;border-color:#e0d8e9;box-shadow:none;min-height:44px}
+#colWaves details.sec>summary::before{color:#8e74aa}
+#colWaves details.sec>summary::after{color:#81758e;padding:3px 7px;border-radius:6px;background:#e9e1f180}
+#colWaves details.sec[open]>summary{color:#695096;background:#eee8f4;border-color:#cfc0df}
+.roundgroup{border-color:#e1dbea;background:#ffffff91;border-radius:13px}
+.rg-head{background:linear-gradient(110deg,#f1edf6,#fcfaf6);border-color:#e0d8e8;padding:11px 10px}
+.rg-head .toggle{color:#826899}.rg-action{color:#6b547d;background:#e8dfef}
+.rg-meta,.rg-meta b,.matrix-real-stats b{font-variant-numeric:tabular-nums}
+.wrow .wnm{color:#3e354d}.wrow:hover{background:#efebf5}
+.period-switcher{background:linear-gradient(110deg,#eee7f3,#f8f3eb);border-color:#d9cee3;border-radius:14px}
+.period-select-wrap select{color:#695178;font-family:var(--font-display);font-size:16px}
+.period-step{color:#745a88;border-color:#d7cce2;background:#fff9}
+.tpop,.role-dialog-card,.dlg-card{background:linear-gradient(135deg,#fffffff0,#efebf5eb);border-color:#ffffffd9;box-shadow:0 1px 0 #fff inset,0 24px 80px -18px #251b4459}
+.role-hero h2,.tpop-title,.dlg-h>b{font-family:var(--font-display);letter-spacing:.7px;color:#44364f}
+.role-hero,.tpop-head{background:linear-gradient(110deg,#f9f5f1aa,#e6ddef88)}
+.role-tabs button.on{background:#fff;color:#665085}
+.role-stats b{color:#655084;font-variant-numeric:tabular-nums}
+.buff-dialog-card,.boss-dialog-card{background:linear-gradient(135deg,#fffffff0,#efebf5eb);border-color:#ffffffd9}
+.buff-dialog-head h2{font-family:var(--font-display);color:#44364f;letter-spacing:.7px}
+.buff-option.selected{background:#eee7f5;border-color:#9b80b8;box-shadow:inset 0 0 0 1px #9b80b8}
+.buff-check{color:#775699}.buff-picker{border-color:#d8cfe4;color:#61506f}
+.buff-dialog:not([hidden]),.boss-dialog:not([hidden]){animation:fadeIn .2s ease-out}
+.buff-dialog-card,.boss-dialog-card{animation:surfaceEnter .3s var(--motion)}
+/* 清晰度按钮保留独立高对比度状态，不能继承筛选按钮的白字。 */
+#posterQuality{color:#48358f;background:#eeeafa;border-color:#c7bced}
+:focus-visible{outline:2px solid #8c6db7;outline-offset:3px}
+@media(hover:hover) and (pointer:fine){
+  .hbtns .btn:hover{background:#ffffff18;border-color:#d6c1a966;color:#fff}
+  .team:hover{transform:translateY(-2px);border-color:#b9a6cd;box-shadow:0 12px 26px -14px #51406740}
+  .slot:not(.filled):hover{background:#e8e0f1;border-color:#a28ab9;box-shadow:0 0 0 3px #9e85bc16}
+  .addbtn:hover{background:#e5daef;border-color:#ad94c1}
+  #colWaves details.sec>summary:hover,.rg-head:hover{background:#eae2f1;border-color:#c9b8db}
+}
+@keyframes orderSpotlight{0%{box-shadow:0 0 0 4px #9b7cb845}100%{box-shadow:0 0 0 0 #9b7cb800}}
+.team.order-moved{animation:orderSpotlight .8s var(--motion)}
+/* 桌面随窗口伸展：取消旧的 1780px 居中限制，避免宽屏两侧空出大片区域。 */
+@media(min-width:1360px){
+  .layout{width:100%;max-width:none;margin:0;grid-template-columns:minmax(288px,1fr) minmax(400px,clamp(400px,30vw,680px)) minmax(456px,1.25fr)}
+  .col{max-height:calc(100dvh - 110px)}
+  #colTeams .slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #colPool #pool{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+}
+@media(min-width:768px) and (max-width:1359px){.layout{padding:14px;gap:14px}header{padding:12px 16px}.brand{font-size:17px}}
+@media(max-width:767px){
+  header{padding:12px}.brand{font-size:15px;letter-spacing:.6px}.layout{padding:10px;gap:12px}
+  header .brand{width:auto;flex:1;min-width:0;font-size:14px;letter-spacing:.2px}
+  .brand>div:last-child{white-space:nowrap}
+  header .tabs{width:auto;flex:0 0 auto}
+  .tabs .mode-only{padding:6px 10px;font-size:11px;letter-spacing:.3px}
+  .col{border-radius:18px}.col-head{padding:13px 12px}.col-head h2{font-size:16px}.col-body{padding:11px}
+  .sum{padding:17px 13px}.slots{gap:8px;padding:12px 10px}.team-foot{padding:11px 10px}
+  .hbtns .btn{min-height:38px}.period-step{height:40px}.team-name{font-size:14px}
+}
+@media(max-width:360px){header .brand{font-size:12px}.brand .mark{width:26px;height:26px}.tabs .mode-only{font-size:10px;padding:6px 7px}}
+@media(hover:none){.team:hover,.btn:hover,.chip:hover,#pool .unit:hover{transform:none}}
+/* 角色配置：刻度滑条与可搜索的武器图鉴。 */
+.role-level-control{position:relative;min-width:0;padding:16px 15px 12px;border:1px solid #dcd3e7;border-radius:16px;background:linear-gradient(135deg,#fff9,#ece4f36b);box-shadow:inset 0 1px 0 #fff}
+.role-level-heading,.role-weapon-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:650;color:#776587}
+.role-level-heading output{font:italic 700 29px/1 var(--font-number);color:#70518f;min-height:30px}
+.role-level-heading output small{font:600 11px var(--font-body);margin-left:3px}
+.role-level-control.unset output,.role-level-control.unavailable output{font:600 12px/30px var(--font-body);color:#81748e}
+.role-config-grid .role-level-control input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:6px;min-height:0;padding:0;margin:23px 0 14px;border:0;border-radius:99px;background:linear-gradient(to right,#9573b5 0%,#9573b5 var(--fill),#dcd3e5 var(--fill),#dcd3e5 100%);cursor:pointer;box-shadow:none;touch-action:pan-y}
+.role-level-control input[type=range]::-webkit-slider-thumb{appearance:none;width:24px;height:24px;border:4px solid #fff;border-radius:50%;background:linear-gradient(135deg,#b99bca,#71568e);box-shadow:0 2px 9px #70518f50;transition:box-shadow .2s,transform .2s}
+.role-level-control input[type=range]::-moz-range-thumb{width:16px;height:16px;border:4px solid #fff;border-radius:50%;background:#87649f;box-shadow:0 2px 9px #70518f50}
+.role-level-control input[type=range]:focus-visible{outline:2px solid #9777b4;outline-offset:9px}
+.role-level-control input[type=range]:active::-webkit-slider-thumb{transform:scale(1.15);box-shadow:0 0 0 6px #a687bf26}
+.role-level-ticks{display:flex;justify-content:space-between;gap:3px}
+.role-level-ticks button{flex:1;min-width:0;min-height:32px;max-width:40px;padding:3px 0;border:1px solid transparent;border-radius:9px;background:transparent;color:#82718f;font:600 14px var(--font-number);transition:background .2s,color .2s,transform .2s}
+.role-level-ticks button[aria-pressed=true]{color:#654680;background:#dfd0ed;border-color:#baa0ce;box-shadow:0 2px 7px #8060971c}
+.role-level-ticks button:hover:not(:disabled){background:#e7dced}
+.role-level-reset{display:block;margin:6px 0 0 auto;border:0;background:transparent;color:#826d94;font-size:10px;text-decoration:underline;text-underline-offset:3px}
+.role-level-control.unavailable{opacity:.65}
+.role-level-control input:disabled,.role-level-ticks button:disabled{cursor:not-allowed}
+.role-level-reset:disabled{opacity:.5;cursor:default}
+.role-weapon-select{min-width:0}.role-weapon-heading{margin-bottom:8px}.role-weapon-heading small{font-size:10px;font-weight:400;color:#8b7e98}
+.role-weapon-trigger{display:flex;align-items:center;gap:14px;width:100%;padding:10px 14px;border:1px solid #d5c8e1;border-radius:15px;background:linear-gradient(115deg,#ffffffe0,#eee7f5b3);text-align:left;transition:border-color .2s,background .2s,box-shadow .2s}
+.role-weapon-trigger:hover{border-color:#a48cba;box-shadow:0 4px 14px #82629814}
+.role-weapon-current-art{flex:0 0 58px;height:58px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(140deg,#e1d5ef,#efe5d9);overflow:hidden}
+.role-weapon-current-art img{width:100%;height:100%;object-fit:contain}.role-weapon-current-art>span{font-size:28px;color:#9578ad}
+.role-weapon-current-copy{display:flex;flex-direction:column;gap:7px;min-width:0;flex:1}.role-weapon-current-copy b{font-size:14px;font-weight:700;color:#554063}.role-weapon-current-copy small{font-size:11px;color:#95806a}.role-weapon-chevron{color:#9175a6}
+.role-weapon-catalog{padding:14px;margin-top:10px;border:1px solid #ded3e9;border-radius:16px;background:#fff8;animation:surfaceEnter .25s var(--motion)}
+.role-weapon-tools{display:flex;gap:10px;align-items:center}.role-config-grid #roleWeaponSearch{min-width:0;flex:1;width:0;padding:9px 11px;background:#fff9;color:#5e4c71;border-color:#d8cee3;font-size:13px}.role-weapon-tools .btn{flex-shrink:0;font-size:11px;padding:8px}
+.role-weapon-ranks{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}.role-weapon-ranks button{padding:5px 10px;border:1px solid #e0d6e9;border-radius:8px;background:#fff9;color:#887196;font-size:11px;min-height:30px;transition:background .2s,color .2s}
+.role-weapon-ranks button[aria-pressed=true]{background:#806099;color:#fff;border-color:#806099}
+.role-weapon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;max-height:360px;overflow-y:auto;overscroll-behavior:contain;padding:3px}
+.role-weapon-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;padding:9px 7px;border:1px solid #e1d9e9;border-radius:13px;background:#fff9;transition:background .2s,border-color .2s,box-shadow .2s}
+.role-weapon-card-art{display:grid;place-items:center;width:100%;height:80px;border-radius:9px;background:linear-gradient(140deg,#e8e6ed,#f6f4f8)}
+.role-weapon-card[data-rank="5"] .role-weapon-card-art{background:linear-gradient(140deg,#dbc5a4,#f6eee2)}
+.role-weapon-card[data-rank="4"] .role-weapon-card-art{background:linear-gradient(140deg,#c7b2db,#efe8f6)}
+.role-weapon-card-art img{width:100%;height:100%;object-fit:contain}.role-weapon-card-art>span{font-size:30px;color:#9580a8}
+.role-weapon-card>b{font-size:11px;font-weight:650;color:#5e4c6c;overflow-wrap:anywhere}.role-weapon-card>small{color:#94754d;font-size:10px;letter-spacing:1px}
+.role-weapon-selected{display:none;position:absolute;right:6px;top:6px;background:#806099;color:#fff;width:20px;height:20px;border-radius:50%;font-size:12px;place-items:center}
+.role-weapon-card[aria-pressed=true]{border-color:#a181bc;background:#eee6f5;box-shadow:inset 0 0 0 1px #a181bc}.role-weapon-card[aria-pressed=true] .role-weapon-selected{display:grid}
+.role-weapon-card:hover{border-color:#b294ca;box-shadow:0 4px 10px #8262981a}
+.role-weapon-card[hidden],.role-weapon-no-results[hidden]{display:none!important}
+.role-weapon-no-results{text-align:center;color:#887596;font-size:12px;padding:18px 0}
+@media(max-width:600px){.role-level-control{padding:13px 10px 10px}.role-level-heading{font-size:11px;gap:4px}.role-level-heading output{font-size:25px}.role-weapon-catalog{padding:10px}.role-config-grid #roleWeaponSearch{font-size:16px}.role-weapon-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));max-height:320px}.role-weapon-ranks button{min-height:36px}.role-level-ticks button{min-height:36px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

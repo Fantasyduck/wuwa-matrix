@@ -1,0 +1,3862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>鸣潮 · 终焉矩阵 队伍排布器</title>
+<style>
+:root{
+  --bg:#f1f4f8; --panel:#ffffff; --panel-2:#f8fafc; --border:#dfe5ee; --border-2:#ccd5e4;
+  /* 正文/辅助文字加深：#475569≈7.5:1、#64748b≈4.8:1（白底），均达到可读基准 */
+  --text:#172033; --muted:#475569; --faint:#64748b;
+  --accent:#4a63e7; --accent-soft:#e8ecff;
+  /* --idle：中性/待命标签底（白字≈4.8:1，替换旧灰 #9aa3b8 的 2.5:1） */
+  --idle:#64748b; --tag-neutral:#5a6276;
+  --ok:#12a37a; --warn:#e08a00; --bad:#dc3f5c;
+  /* 局部深色（积分摘要）：--on-emphasis / --on-emphasis-2 是它上面的文字色 */
+  --emphasis:#0f172a; --emphasis-2:#141d33; --on-emphasis:#f8fafc; --on-emphasis-2:#cbd5e1;
+  --shadow:0 1px 2px rgba(24,32,64,.05), 0 6px 20px rgba(24,32,64,.06);
+  --r:16px; --rc:12px; --rctl:8px;
+  --e-ice:#3d9bf0; --e-fire:#f2603c; --e-elec:#9b5cf0; --e-aero:#17b394;
+  --e-spectro:#e0a800; --e-havoc:#d93f8e; --e-zero:#8b93a7;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:13px/1.55 "Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:inherit}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#c8cedd;border-radius:9px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:#adb6ca;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- 顶栏 ---------- */
+header{
+  position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 18px;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+.brand .mark{
+  width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;
+  background:linear-gradient(135deg,#5a72f0,#8b5cf6);
+}
+.brand small{font-weight:500;color:var(--faint);margin-left:2px;font-size:11px}
+.tabs{display:flex;gap:4px;background:var(--panel-2);padding:3px;border-radius:10px;border:1px solid var(--border)}
+.tabs button{
+  border:0;background:transparent;padding:5px 14px;border-radius:7px;color:var(--muted);font-weight:600;font-size:12.5px;
+  transition:.15s;
+}
+.tabs button.on{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(24,32,64,.12)}
+.spacer{flex:1}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  border:1px solid var(--border-2);background:#fff;border-radius:9px;padding:6px 12px;font-size:12.5px;font-weight:600;
+  color:var(--muted);transition:.15s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#3d55d6;color:#fff}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.busy{opacity:.6;pointer-events:none}
+
+/* ---------- 布局 ---------- */
+.layout{
+  /* 中栏只需要「放得下队伍卡片」的宽度；多出来的空间交给左右两栏吸收，
+     这样队伍卡片右侧不会再出现一大片空白（以前中栏是 1fr、卡片却卡在 700px）。 */
+  display:grid;grid-template-columns:minmax(288px,1fr) minmax(400px,432px) minmax(456px,1.25fr);gap:14px;
+  padding:14px;align-items:start;max-width:1780px;margin:0 auto;
+}
+@media (max-width:1620px){ .layout{grid-template-columns:minmax(264px,.94fr) minmax(392px,424px) minmax(430px,1.14fr)} }
+/* 中屏（900–1359px）：改为「编队 + 结果」两栏，共鸣者库收成可开合的抽屉 */
+@media (max-width:1359px){
+  .layout{grid-template-columns:minmax(0,1fr) minmax(348px,404px)}
+  #btnPoolOpen{display:inline-flex}
+  #colPool{
+    position:fixed;top:0;left:0;bottom:0;z-index:120;width:min(342px,88vw);max-height:none;
+    border-radius:0 var(--r) var(--r) 0;transform:translateX(-104%);
+    transition:transform .24s cubic-bezier(.2,.8,.3,1);box-shadow:18px 0 46px rgba(24,32,64,.22);
+  }
+  #colPool.open{transform:none}
+  #poolScrim{position:fixed;inset:0;z-index:110;background:rgba(15,23,42,.32);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+  #poolScrim[hidden]{display:none}
+}
+@media (min-width:1360px){ #btnPoolOpen{display:none} #poolScrim{display:none} }
+/* 手机（<900px）：单列，编队在前、结果在后；页头压缩，次要操作收进「更多」 */
+@media (max-width:899px){
+  .layout{display:flex;flex-direction:column;gap:12px;padding:10px}
+  .col{max-height:none!important}
+  #colTeams{order:1} #colWaves{order:2}
+  header{padding:8px 12px;gap:10px}
+  .brand small{display:none}
+  .hbtns{width:100%;justify-content:flex-start}
+  .hbtns .btn.secondary{display:none}
+  .hbtns.more .btn.secondary{display:inline-flex}
+  #btnMore{display:inline-flex!important}
+}
+.col{
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;max-height:calc(100vh - 92px);overflow:hidden;
+}
+.col-head{
+  padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:linear-gradient(#fff,#fbfcfe);
+}
+.col-head h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.3px}
+.col-head .cnt{font-size:11px;color:var(--faint);font-weight:600}
+.col-body{padding:11px;overflow:auto;flex:1}
+/* 右栏整体滚动：情报 / 血条总览 / 波次列表 / 敌人库 都在同一条滚动流里，
+   避免下半部分被 max-height 裁掉，也让「悬停队伍 → 跳转轮次」能真正滚到位。 */
+#colWaves{overflow-y:auto;overflow-x:hidden}
+#colWaves>.col-body{overflow:visible;flex:0 0 auto}
+#colWaves>.col-head{position:sticky;top:0;z-index:6}
+.col-foot{border-top:1px solid var(--border);padding:9px 11px;background:var(--panel-2)}
+
+/* ---------- 筛选 ---------- */
+.field{
+  width:100%;border:1px solid var(--border-2);border-radius:9px;padding:6px 10px;background:#fff;outline:none;
+}
+.field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.chip{
+  border:1px solid var(--border);background:#fff;border-radius:999px;padding:2.5px 9px;font-size:11.5px;font-weight:600;
+  color:var(--muted);transition:.14s;user-select:none;
+}
+.chip:hover{border-color:var(--border-2)}
+.chip.on{color:#fff;border-color:transparent}
+.chip.el-冷凝.on{background:var(--e-ice)} .chip.el-热熔.on{background:var(--e-fire)}
+.chip.el-导电.on{background:var(--e-elec)} .chip.el-气动.on{background:var(--e-aero)}
+.chip.el-衍射.on{background:var(--e-spectro)} .chip.el-湮灭.on{background:var(--e-havoc)}
+.chip.el-零.on{background:var(--e-zero)} .chip.el-全部.on{background:#5b6b8c}
+.chip.rank.on{background:#5b6b8c}
+
+/* ---------- 头像网格 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:7px;margin-top:10px}
+.grid.bossgrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}
+.unit{
+  position:relative;border-radius:10px;overflow:hidden;background:var(--panel-2);border:1.5px solid var(--border);
+  cursor:grab;transition:.14s;aspect-ratio:1/1;
+}
+.unit:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(24,32,64,.16);border-color:var(--border-2)}
+.unit:active{cursor:grabbing}
+.unit img{width:100%;height:100%;object-fit:cover;display:block;background:#e9ecf4;pointer-events:none}
+.unit .nm{
+  position:absolute;left:0;right:0;bottom:0;padding:8px 3px 3px;font-size:10px;line-height:1.15;text-align:center;
+  color:#fff;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.75);
+  background:linear-gradient(transparent,rgba(8,12,26,.82));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.unit .el{position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.unit .used{
+  position:absolute;top:3px;right:3px;background:rgba(18,24,44,.82);color:#fff;font-size:9.5px;font-weight:700;
+  border-radius:5px;padding:1px 4px;backdrop-filter:blur(2px);
+}
+.unit .used.low{background:rgba(220,63,92,.94)}
+.unit .used.buff{background:linear-gradient(135deg,#e0a800,#d9822b)}
+.unit.dragging{opacity:.4}
+.unit .ph{display:grid;place-items:center;height:100%;font-size:19px;font-weight:800;color:#fff;background:linear-gradient(135deg,#6b7690,#4e5768)}
+
+/* ---------- 队伍 ---------- */
+.teams{display:flex;flex-direction:column;gap:10px}
+.team{
+  border:1px solid var(--border);border-radius:12px;background:var(--panel-2);overflow:hidden;width:100%;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .18s, border-color .18s;
+}
+.team:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(24,32,64,.13);border-color:#c6d0ff}
+.team.drop-on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.team.disabled{opacity:.5}
+/* 鼠标悬停/点击某队时，该队与右侧预览的联动高亮 */
+.team.focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft), 0 12px 28px rgba(24,32,64,.16)}
+.team.focus .team-top{background:linear-gradient(#f4f6ff,#fff)}
+.team-foot{cursor:pointer}
+.team-foot:hover{background:var(--accent-soft)}
+.team-foot .open-hint{font-size:10px;color:var(--faint);font-weight:700;white-space:nowrap}
+.team-top{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--border);
+}
+.grip{cursor:grab;color:var(--faint);font-size:15px;line-height:1;padding:0 2px;user-select:none}
+.grip:active{cursor:grabbing}
+.team-name{border:0;background:transparent;font-weight:700;font-size:13px;width:150px;outline:none;padding:2px 3px;border-radius:6px}
+.team-name:focus{background:var(--accent-soft)}
+.team-seq{
+  font-size:11px;font-weight:700;color:#fff;border-radius:7px;padding:2px 8px;letter-spacing:.4px;white-space:nowrap;
+}
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px}
+.slot{
+  position:relative;border:1.5px dashed var(--border-2);border-radius:10px;aspect-ratio:1/1;background:#fff;
+  display:grid;place-items:center;overflow:hidden;transition:.14s;cursor:pointer;
+}
+.slot:hover{border-color:var(--accent);background:var(--accent-soft)}
+.slot.filled{border-style:solid;border-color:var(--border)}
+.slot.drop-on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 3px var(--accent-soft)}
+.slot img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.slot .empty{font-size:11px;color:var(--faint);font-weight:600}
+.slot .nm{
+  position:absolute;left:0;right:0;bottom:0;padding:9px 3px 3px;font-size:10.5px;text-align:center;color:#fff;font-weight:600;
+  text-shadow:0 1px 3px rgba(0,0,0,.75);background:linear-gradient(transparent,rgba(8,12,26,.82));
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.slot .el{position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.slot .del{
+  position:absolute;top:3px;right:3px;width:17px;height:17px;border-radius:50%;border:0;background:rgba(18,24,44,.75);color:#fff;
+  font-size:11px;line-height:17px;text-align:center;padding:0;opacity:0;transition:.14s;
+}
+.slot:hover .del{opacity:1}
+.slot .ph{display:grid;place-items:center;height:100%;width:100%;font-size:20px;font-weight:800;color:#fff}
+.slot .rk{position:absolute;bottom:0;right:0;font-size:9px;font-weight:800;background:rgba(18,24,44,.7);color:#fff;padding:1px 4px;border-top-left-radius:6px}
+.team-meta{display:flex;align-items:center;gap:8px;padding:0 10px 9px;flex-wrap:wrap}
+.team-meta label{font-size:11px;color:var(--muted);font-weight:600}
+.mini{
+  border:1px solid var(--border-2);background:#fff;border-radius:7px;padding:3px 7px;font-size:11.5px;font-weight:600;
+  outline:none;max-width:170px;
+}
+.mini:focus{border-color:var(--accent)}
+.step{display:flex;align-items:center;gap:0;border:1px solid var(--border-2);border-radius:8px;overflow:hidden;background:#fff}
+.step button{border:0;background:transparent;width:22px;height:24px;font-weight:800;color:var(--muted);padding:0;font-size:13px}
+.step button:hover{background:var(--accent-soft);color:var(--accent)}
+.step span{min-width:44px;text-align:center;font-size:11.5px;font-weight:700;color:var(--text);padding:0 3px}
+.step span small{font-weight:600;color:var(--faint);font-size:10px}
+.tag{font-size:10.5px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.tag.cross{background:#efe9ff;color:#6d47d9}
+.tag.cover{background:var(--accent-soft);color:var(--accent)}
+.tag.warn{background:#fdeee0;color:var(--warn)}
+.tag.bad{background:#fdeaee;color:var(--bad)}
+.tag.ok{background:#e3f6ef;color:var(--ok)}
+.tag.mute{background:#eef0f5;color:var(--muted)}
+.team-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;
+  border-top:1px solid var(--border);background:#fff;font-size:11.5px;
+}
+.team-score{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.team-circ{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addbtn{
+  border:1.5px dashed var(--border-2);background:#fbfcff;border-radius:11px;padding:10px;color:var(--muted);font-weight:700;
+  font-size:12.5px;width:100%;transition:.15s;
+}
+.addbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- 队伍得分预览 ---------- */
+.tprev{margin:0 10px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;overflow:hidden}
+.tprev-head{display:flex;align-items:center;gap:6px;padding:6px 9px;background:#fbfcff;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted)}
+.tprev-body{padding:8px 9px;display:flex;flex-direction:column;gap:6px}
+.tprev .kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px}
+.tprev .kv span{color:var(--muted)}
+.tprev .kv b{font-variant-numeric:tabular-nums}
+.tprev .wl{border:1px solid var(--border);border-radius:8px;padding:5px 7px;display:flex;flex-direction:column;gap:4px}
+.tprev .wl .top{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700}
+.tprev .wl .top .no{background:#5b6b8c;color:#fff;border-radius:5px;padding:1px 5px;font-size:10px}
+.tprev .wl .top .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tprev .wl .top .sc{color:var(--accent);font-variant-numeric:tabular-nums}
+.mem{display:flex;gap:5px;flex-wrap:wrap}
+.mem i{
+  font-style:normal;display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--muted);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:999px;padding:1px 7px;
+}
+.mem i .d{width:6px;height:6px;border-radius:50%}
+.note{font-size:10.5px;color:var(--faint);line-height:1.5}
+.note.warn{color:var(--warn)}
+.note.bad{color:var(--bad)}
+
+/* ---------- 血条 ---------- */
+.hp{
+  display:flex;height:12px;border-radius:7px;overflow:hidden;background:#e9ecf4;border:1px solid var(--border);position:relative;
+}
+.hp.sm{height:9px;border-radius:6px}
+.hp .seg{height:100%;flex:0 0 auto;transition:width .25s}
+.hp .rem{height:100%;background:repeating-linear-gradient(45deg,#dde1ea,#dde1ea 5px,#e9ecf4 5px,#e9ecf4 10px);flex:1 1 auto}
+.hp .kill{height:100%;flex:0 0 auto;background:linear-gradient(#12a37a,#0f8f6b)}
+.hpwrap{display:flex;flex-direction:column;gap:4px}
+.hpline{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--muted);font-weight:600}
+.hpline b{font-variant-numeric:tabular-nums;color:var(--text)}
+.hp-legend{display:flex;gap:9px;flex-wrap:wrap;font-size:10px;color:var(--faint);padding-top:2px}
+.hp-legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px}
+.hp-legend i .d{width:8px;height:8px;border-radius:3px}
+/* 悬停某队：只点亮它打到的那些 BOSS 血条分段（分段本身已按队伍着色），不框整条、更不框整栏 */
+
+/* ---------- 队伍详情悬浮窗（磨砂玻璃质感） ---------- */
+.tpop{
+  position:fixed;z-index:90;width:536px;max-width:calc(100vw - 24px);max-height:84vh;overflow:auto;
+  /* 半透明 + 背景模糊 = 磨砂玻璃；再叠一层斜向高光与多层投影做质感 */
+  background:
+    radial-gradient(130% 90% at 0% 0%, rgba(255,255,255,.92), rgba(255,255,255,0) 58%),
+    linear-gradient(160deg, rgba(255,255,255,.72), rgba(244,247,255,.62)),
+    rgba(252,253,255,.66);
+  -webkit-backdrop-filter:blur(24px) saturate(1.85);
+  backdrop-filter:blur(24px) saturate(1.85);
+  border:1px solid rgba(255,255,255,.72);border-radius:18px;
+  box-shadow:0 0 0 1px rgba(24,32,64,.05),
+             0 1px 0 rgba(255,255,255,.9) inset,
+             0 30px 70px -16px rgba(24,32,64,.42),
+             0 10px 26px rgba(24,32,64,.15);
+  overscroll-behavior:contain;transform-origin:top left;
+  animation:tpopIn .34s cubic-bezier(.16,1,.3,1);
+}
+@keyframes tpopIn{from{opacity:0;transform:translateY(-10px) scale(.955)}to{opacity:1;transform:none}}
+.tpop.pop-out{animation:tpopOut .16s ease-in forwards}
+@keyframes tpopOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-6px) scale(.98)}}
+.tpop[hidden]{display:none}
+.tpop-head{
+  position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:11px 13px;
+  background:linear-gradient(rgba(248,250,255,.9),rgba(255,255,255,.55));
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(226,230,240,.85);
+}
+.tpop-head .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 4px rgba(74,99,231,.12)}
+.tpop-title{flex:1;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.2px}
+.tpop-close{border:0;background:rgba(255,255,255,.6);color:var(--muted);font-size:14px;line-height:1;padding:4px 8px;border-radius:8px;cursor:pointer;transition:.15s}
+.tpop-close:hover{background:var(--bad);color:#fff;transform:rotate(90deg)}
+.tpop-body{padding:11px 13px 14px;display:flex;flex-direction:column;gap:8px}
+/* 内容逐块滑入，让展开更有层次 */
+.tpop-body>*{animation:tpopRow .36s cubic-bezier(.16,1,.3,1) backwards}
+.tpop-body>*:nth-child(1){animation-delay:.04s}
+.tpop-body>*:nth-child(2){animation-delay:.08s}
+.tpop-body>*:nth-child(3){animation-delay:.12s}
+.tpop-body>*:nth-child(4){animation-delay:.16s}
+.tpop-body>*:nth-child(5){animation-delay:.2s}
+@keyframes tpopRow{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.tpop .tprev{margin:0;border:0;border-radius:0;overflow:visible}
+.tpop .tprev-head{display:none}
+.tpop .tprev-body{padding:0;gap:8px}
+.tpop-sec{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.tpop-cross{display:flex;flex-wrap:wrap;gap:5px}
+.tpop-cross span{
+  font-size:10px;font-weight:700;background:rgba(255,255,255,.72);border:1px solid var(--border);
+  border-radius:999px;padding:2.5px 9px;color:var(--muted);transition:transform .16s cubic-bezier(.2,.8,.3,1),box-shadow .16s,color .16s;
+}
+.tpop-cross span:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(24,32,64,.14);color:var(--text)}
+.tpop-cross span b{color:var(--text)}
+/* 逐波卡片：悬停微抬 + 阴影，血条分段过渡更顺 */
+.tpop .tprev .wl{
+  background:rgba(255,255,255,.66);border:1px solid var(--border);border-radius:11px;padding:7px 9px;gap:6px;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s,border-color .18s,background .18s;
+}
+.tpop .tprev .wl:hover{transform:translateX(2px);background:#fff;border-color:#c6d0ff;box-shadow:0 8px 20px rgba(24,32,64,.10)}
+.tpop .tprev .wl .hp.sm{height:11px;border-radius:7px;transform-origin:left center;animation:barGrow .5s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes barGrow{from{transform:scaleX(.45);opacity:.45}to{transform:scaleX(1);opacity:1}}
+.tpop .wl:nth-child(1) .hp.sm{animation-delay:.10s}
+.tpop .wl:nth-child(2) .hp.sm{animation-delay:.15s}
+.tpop .wl:nth-child(3) .hp.sm{animation-delay:.20s}
+.tpop .wl:nth-child(4) .hp.sm{animation-delay:.25s}
+.tpop .wl:nth-child(5) .hp.sm{animation-delay:.30s}
+
+/* ---------- 波次 ---------- */
+.waves{display:flex;flex-direction:column;gap:8px}
+.wave{
+  border:1px solid var(--border);border-radius:11px;background:var(--panel-2);overflow:hidden;transition:.14s;
+}
+.wave.drop-on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.wave.uncovered{border-style:dashed;background:#fbfbfe}
+.wave-head{display:flex;align-items:center;gap:7px;padding:7px 9px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.wave-no{
+  font-size:11px;font-weight:800;color:#fff;background:#5b6b8c;border-radius:6px;padding:2px 7px;white-space:nowrap;
+}
+.wave-mult{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 7px}
+.wave-mult.hp{color:#b1650a;background:#fdf3e2}
+.wave-mult.real{color:#0b7a5c;background:#e2f5ee}
+.wave-owner{font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.wave-enemies{display:flex;gap:7px;padding:8px 9px;flex-wrap:wrap;min-height:54px}
+.wave-hp{padding:0 9px 9px}
+.eSlot{
+  width:54px;height:54px;border-radius:9px;border:1.5px dashed var(--border-2);background:#fff;position:relative;overflow:hidden;
+  display:grid;place-items:center;cursor:pointer;transition:.14s;flex:0 0 auto;
+}
+.eSlot:hover{border-color:var(--accent)}
+.eSlot.filled{border-style:solid;border-color:var(--border)}
+.eSlot.drop-on{border-color:var(--accent);box-shadow:inset 0 0 0 3px var(--accent-soft)}
+.eSlot img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.eSlot .empty{font-size:16px;color:var(--faint);font-weight:700}
+.eSlot .nm{
+  position:absolute;left:0;right:0;bottom:0;font-size:9px;text-align:center;color:#fff;font-weight:600;padding:7px 2px 2px;
+  background:linear-gradient(transparent,rgba(8,12,26,.85));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.eSlot .res{
+  position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;color:#fff;border-bottom-right-radius:7px;
+  padding:1px 4px;display:flex;gap:2px;
+}
+.eSlot .res s{text-decoration:none;padding:0 2px;border-radius:3px}
+.eSlot .del{
+  position:absolute;top:0;right:0;width:15px;height:15px;border-radius:0 0 0 7px;border:0;background:rgba(18,24,44,.75);
+  color:#fff;font-size:10px;line-height:15px;text-align:center;padding:0;opacity:0;transition:.14s;
+}
+.eSlot:hover .del{opacity:1}
+.eSlot .sc{position:absolute;bottom:0;right:0;font-size:8.5px;font-weight:800;background:rgba(74,99,231,.92);color:#fff;padding:1px 4px;border-top-left-radius:6px}
+.eSlot .ph{display:grid;place-items:center;height:100%;width:100%;font-size:15px;font-weight:800;color:#fff}
+
+/* ---------- 波次 · 按轮次分组（折叠） ---------- */
+.waves{display:flex;flex-direction:column;gap:7px}
+.roundgroup{border:1px solid var(--border);border-radius:11px;background:#fff;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.roundgroup.hl{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rg-head{
+  display:flex;align-items:center;gap:7px;padding:7px 9px;background:linear-gradient(#fff,#fafbff);
+  cursor:pointer;font-size:11.5px;font-weight:700;user-select:none;
+}
+.rg-head:hover{background:var(--accent-soft)}
+.rg-head .toggle{font-size:10px;color:var(--faint);transition:transform .16s;display:inline-block}
+.roundgroup.open .rg-head .toggle{transform:rotate(90deg)}
+.rg-badge{font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,#5a72f0,#8b5cf6);border-radius:6px;padding:2px 8px;white-space:nowrap}
+.rg-hp{flex:1 1 auto;min-width:44px;max-width:420px}
+.rg-meta{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap;flex:0 0 auto}
+.rg-meta b{color:var(--text);font-variant-numeric:tabular-nums}
+.rg-body{padding:0 7px 7px;display:flex;flex-direction:column;gap:4px}
+.wrow{
+  display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:8px;border:1px solid transparent;
+  cursor:pointer;transition:background .14s,border-color .14s,box-shadow .14s;
+}
+.wrow:hover{background:var(--panel-2)}
+.wrow.exp{border-color:var(--border);background:#fff}
+.wrow.drop-on{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px var(--accent-soft)}
+.wrow.hl{background:#eef2ff;border-color:#c6d0ff}
+.wrow.hl .wno{background:var(--accent)}
+/* 每一列都定宽（波号 / 头像 / 敌人名 / 血条(flex) / 状态 / 归属），
+   这样所有行的血条起止点完全对齐——不会因为敌人名长短、状态文字长短而「血条长短不一」。 */
+.wrow .wno{font-size:10px;font-weight:800;color:#fff;background:#8892a8;border-radius:5px;padding:1px 0;flex:0 0 26px;width:26px;text-align:center}
+.wrow.dead .wno{background:#12a37a}
+.wrow .wico{width:22px;height:22px;border-radius:6px;overflow:hidden;flex:0 0 22px;background:#eef0f5}
+.wrow .wico img{width:100%;height:100%;object-fit:cover;display:block}
+.wrow .wnm{font-size:11px;font-weight:700;flex:0 0 84px;width:84px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow .wbar{flex:1 1 auto;min-width:0}
+.wrow .wst{font-size:10px;font-weight:700;color:var(--muted);flex:0 0 48px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.wrow.dead .wst{color:var(--ok)}
+.wrow .wown{font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;flex:0 0 80px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow-detail{margin:1px 0 4px 26px;padding:8px;border:1px solid var(--border);border-radius:9px;background:#fbfcff;display:flex;flex-direction:column;gap:7px}
+.hp .seg.glow{
+  filter:brightness(1.35) saturate(1.45);                       /* 该队的分段点亮 */
+  box-shadow:0 0 0 2px rgba(255,255,255,.85) inset, 0 0 6px rgba(255,255,255,.5);
+  animation:segpulse .8s ease-in-out infinite alternate;
+}
+@keyframes segpulse{from{opacity:.68}to{opacity:1}}
+.waves-empty{padding:12px;text-align:center;color:var(--faint);font-size:11.5px}
+
+/* ---------- 血条总览（轮次级） ---------- */
+.hpwrap{display:flex;flex-direction:column;gap:5px}
+.rrow{display:flex;align-items:center;gap:7px;padding:4px 5px;border-radius:8px;cursor:pointer;transition:background .14s,border-color .14s}
+.rrow:hover{background:var(--panel-2)}
+.rrow.hl{background:#eef2ff;box-shadow:inset 0 0 0 1px #c6d0ff}
+.rrow .rno{font-size:10px;font-weight:800;color:#fff;background:#5b6b8c;border-radius:5px;padding:1px 6px;min-width:24px;text-align:center;flex:0 0 auto}
+.rrow.dead .rno{background:#12a37a}
+
+/* ---------- 汇总 ---------- */
+.sum{padding:12px 13px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f7f9ff,#fdfbff)}
+.sum-total{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.sum-total b{font-size:27px;font-weight:800;letter-spacing:-.5px;color:var(--accent);font-variant-numeric:tabular-nums}
+.sum-total span{font-size:11.5px;color:var(--muted);font-weight:600}
+.sum-total .tier{font-size:11px;font-weight:700;background:#e3f6ef;color:var(--ok);border-radius:7px;padding:2px 8px}
+.sum-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.stat{background:#fff;border:1px solid var(--border);border-radius:9px;padding:5px 10px;min-width:74px}
+.stat i{display:block;font-style:normal;font-size:10.5px;color:var(--faint);font-weight:600}
+.stat b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.contrib{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.contrib .row{display:flex;align-items:center;gap:7px;font-size:11.5px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:5px 9px}
+.contrib .row .nm{font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contrib .row .sc{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;display:inline-block}
+.dot.sq{border-radius:3px}
+.settings{padding:10px 13px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.settings .s{display:flex;flex-direction:column;gap:3px}
+.settings .s label{font-size:10.5px;color:var(--muted);font-weight:600}
+.settings .s input,.settings .s select{
+  border:1px solid var(--border-2);border-radius:8px;padding:4px 8px;font-size:12px;outline:none;background:#fff;width:100%;
+}
+.settings .s input:focus,.settings .s select:focus{border-color:var(--accent)}
+details.sec{border-top:1px solid var(--border)}
+details.sec>summary{
+  padding:9px 13px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);list-style:none;user-select:none;
+  display:flex;align-items:center;gap:6px;
+}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:"\25B8";font-size:10px;transition:.15s}
+details.sec[open]>summary::before{transform:rotate(90deg)}
+details.sec>summary:hover{color:var(--accent)}
+
+/* ---------- 矩阵情报 ---------- */
+.intel{padding:11px 13px;display:flex;flex-direction:column;gap:9px}
+.intel-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.period-badge{
+  font-size:11.5px;font-weight:700;border-radius:8px;padding:3px 9px;
+  background:linear-gradient(135deg,#5a72f0,#8b5cf6);color:#fff;
+}
+.src{font-size:10.5px;color:var(--faint);font-weight:600}
+.src.online{color:var(--ok)}
+.src.local{color:var(--warn)}
+.buffcard{
+  display:flex;gap:8px;align-items:flex-start;border:1px solid var(--border);border-radius:9px;padding:6px 8px;background:#fff;
+}
+.buffcard img{width:24px;height:24px;border-radius:6px;object-fit:cover;background:#f1f3f9;flex:0 0 auto}
+.buffcard .bt{font-size:11.5px;font-weight:700;margin-bottom:1px}
+.buffcard .bd{font-size:10.5px;color:var(--muted);line-height:1.5}
+.buffcard .bg{font-size:10px;font-weight:700;color:#b1650a;background:#fdf3e2;border-radius:5px;padding:1px 5px;margin-left:4px}
+.tierlist{display:flex;gap:5px;flex-wrap:wrap}
+.tierlist span{font-size:10px;font-weight:700;border:1px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--muted);background:#fff}
+.tierlist span.ok{border-color:#bfe8da;background:#e9f8f2;color:#0f8f6b}
+.tasklist{display:flex;flex-direction:column;gap:4px}
+.tasklist .t{font-size:10.5px;color:var(--muted);line-height:1.5;display:flex;gap:5px}
+.tasklist .t b{color:var(--accent);flex:0 0 auto}
+
+/* ---------- 拖拽幽灵 ---------- */
+#ghost{
+  position:fixed;left:-9999px;top:-9999px;pointer-events:none;z-index:999;width:56px;height:56px;border-radius:10px;overflow:hidden;
+  box-shadow:0 10px 26px rgba(24,32,64,.35);opacity:0;transition:opacity .1s;border:2px solid #fff;
+}
+#ghost.on{opacity:.95}
+#ghost img{width:100%;height:100%;object-fit:cover;display:block}
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(16px);background:rgba(20,26,48,.94);color:#fff;
+  padding:9px 18px;border-radius:10px;font-size:12.5px;font-weight:600;opacity:0;transition:.22s;pointer-events:none;z-index:1000;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.hint{font-size:11px;color:var(--faint);padding:0 2px 8px;line-height:1.5}
+.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:10.5px;color:var(--faint);padding-top:8px}
+.legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px}
+.empty-note{text-align:center;color:var(--faint);font-size:12px;padding:26px 10px}
+
+/* =========================================================================
+   评审改造（P0 + P1）：字号/对比度 · 深色积分摘要 · 卡片紧凑 · 选中反馈 · 触屏
+   统一放在样式表末尾，靠「同权重后者胜」覆盖上面的旧值，便于整块回滚。
+   ========================================================================= */
+
+/* ---------- 1. 字号与对比度 ---------- */
+.col-head h2{font-size:15px}
+.col-head .cnt{font-size:11.5px}
+details.sec>summary{font-size:13.5px}
+.team-name{font-size:14.5px}
+.team-seq{font-size:11.5px}
+.team-foot{font-size:12px}
+.team-circ{font-size:11.5px}
+.sum-total b{font-size:34px}
+.stat b{font-size:19px}
+.stat i{font-size:11.5px}
+.contrib .row{font-size:12px}
+.note{font-size:12px}
+.hint{font-size:12px}
+.legend{font-size:11px}
+.tag{font-size:11px}
+.mem i{font-size:11px}
+.mini{font-size:12px}
+.chip{font-size:12px}
+.empty-note{font-size:12.5px}
+.rg-meta{font-size:11.5px}
+.wrow .wno{font-size:10.5px}
+.wrow .wnm{font-size:11.5px}
+.wrow .wst{font-size:10.5px;flex:0 0 50px}
+.wrow .wown{font-size:10.5px}
+.hpline{font-size:11px}
+.tprev .kv{font-size:12px}
+.hp-legend{font-size:10.5px}
+.src{font-size:11px}
+.buffcard .bt{font-size:12px}
+.buffcard .bd{font-size:11px}
+.tierlist span{font-size:10.5px}
+.tasklist .t{font-size:11px}
+.tpop-title{font-size:15px}
+.tpop-sec{font-size:11.5px}
+.tpop-cross span{font-size:10.5px}
+.team-foot .open-hint{font-size:10.5px}
+.slot .empty{font-size:11.5px}
+
+/* ---------- 2. 积分摘要：局部深色，成为最醒目的结果区 ---------- */
+.sum{
+  padding:14px 15px;border-bottom:1px solid var(--border);color:var(--on-emphasis);
+  background:
+    radial-gradient(125% 130% at 100% 0%, rgba(74,99,231,.38), rgba(74,99,231,0) 62%),
+    linear-gradient(135deg,var(--emphasis-2),var(--emphasis));
+}
+.sum-total b{color:#fff}
+.sum-total span{color:var(--on-emphasis-2)}
+/* 档位徽章：默认中性；ok=已达档，warn=未达有效档 */
+.sum-total .tier{font-size:11.5px;background:rgba(255,255,255,.12);color:var(--on-emphasis-2)}
+.sum-total .tier.ok{background:rgba(52,199,123,.22);color:#8ff0bd}
+.sum-total .tier.warn{background:rgba(224,138,0,.24);color:#ffd08a}
+.sum .stat{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+.sum .stat i{color:var(--on-emphasis-2)}
+.sum .stat b{color:#fff}
+.sum .contrib .row{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14)}
+.sum .contrib .row .nm{color:var(--on-emphasis)}
+.sum .contrib .row .sc{color:#fff}
+.sum .contrib .row .tag{background:rgba(255,255,255,.13);color:var(--on-emphasis-2)}
+.sum .contrib .row .tag.cross{background:rgba(160,132,255,.24);color:#d3c2ff}
+.sum .contrib .row .tag.warn{background:rgba(224,138,0,.26);color:#ffd08a}
+.sum .contrib .row .tag.bad{background:rgba(220,63,92,.26);color:#ffb3c2}
+.sum .contrib .row .tag[style*="--ok"],.sum .contrib .row .tag.ok{color:#8ff0bd!important}
+.sum .empty-note{color:var(--on-emphasis-2)}
+.sum .dot{box-shadow:0 0 0 2px rgba(255,255,255,.28)}
+
+/* ---------- 3. 队伍卡片：头像限高，不再随列宽膨胀 ---------- */
+.slots{grid-template-columns:repeat(3,minmax(0,128px));justify-content:center}
+.team.disabled{opacity:.78}
+.team.disabled .slots{filter:grayscale(.5)}
+.team.disabled .team-top{background:var(--panel-2)}
+.team-foot{justify-content:space-between}
+
+/* ---------- 4. 角色库：持续选中反馈 + 空槽就绪提示 ---------- */
+.unit.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),0 8px 20px rgba(24,32,64,.18)}
+.unit.sel .el{display:none}
+.unit.sel::after{
+  content:"✓";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:11px;font-weight:800;line-height:17px;text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);
+}
+@keyframes slotPulse{from{box-shadow:0 0 0 0 rgba(74,99,231,0)}to{box-shadow:0 0 0 3px rgba(74,99,231,.18)}}
+.slot.armed{border-style:solid;border-color:var(--accent);background:var(--accent-soft);animation:slotPulse 1.1s ease-in-out infinite alternate}
+
+/* ---------- 5. 血条总览：标出当前展开（定位）到的轮次 ---------- */
+.rrow.on{background:#eef2ff;box-shadow:inset 0 0 0 1px #c6d0ff}
+
+/* ---------- 6. 触屏：删除入口常显，别只靠 hover ---------- */
+@media (hover:none){
+  .slot .del{opacity:1}
+  .eSlot .del{opacity:1}
+}
+
+/* ---------- 7. 库街区账号：对话框 + 「已拥有」角色标注 ---------- */
+.chip.own{color:#b1650a;border-color:#f0dcb4;background:#fdf7ea}
+.chip.own.on{color:#fff;border-color:transparent;background:#12a37a}
+/* 未拥有的共鸣者：变暗；hover 稍微提亮便于查看 */
+.unit.noown{opacity:.42;filter:grayscale(.55)}
+.unit.noown:hover{opacity:.75;filter:grayscale(.15)}
+/* 已拥有：右下角绿色小勾 */
+.unit .own{position:absolute;right:3px;bottom:3px;width:14px;height:14px;border-radius:50%;
+  background:rgba(18,163,122,.95);color:#fff;font-size:9px;font-weight:800;line-height:14px;text-align:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.28);pointer-events:none}
+#kuroDlg,#posterDlg{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center;
+  padding:6vh 16px;background:rgba(15,23,42,.44);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#kuroDlg[hidden],#posterDlg[hidden]{display:none}
+.dlg-card{width:min(560px,100%);max-height:86vh;overflow:auto;background:var(--panel);border:1px solid var(--border-2);
+  border-radius:var(--r);box-shadow:0 24px 60px rgba(15,23,42,.34);animation:tpopIn .26s cubic-bezier(.16,1,.3,1)}
+.dlg-h{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--border)}
+.dlg-h b{font-size:15px}
+.dlg-b{padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.kwrap{display:flex;flex-direction:column;gap:4px}
+.kwrap>label{font-size:12px;color:var(--muted)}
+.kwrap input,.kwrap textarea{width:100%;padding:7px 9px;border:1px solid var(--border-2);border-radius:var(--rctl);
+  background:var(--panel-2);color:var(--text);font:inherit}
+.kwrap textarea{resize:vertical;min-height:54px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;word-break:break-all}
+.kcard{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;background:var(--panel-2);
+  border:1px solid var(--border);border-radius:var(--rc);padding:11px 13px}
+.kcard .k{color:var(--muted);font-size:12px}
+.kcard .v{font-weight:600;font-size:13px}
+.krow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.kmut{font-size:11.5px;color:var(--faint);line-height:1.65}
+.kwarn{font-size:11.5px;color:var(--warn);line-height:1.6}
+.kok{font-size:11.5px;color:var(--ok)}
+.kraw{margin:0;max-height:190px;overflow:auto;background:#0f172a;color:#cbd5e1;border-radius:var(--rctl);
+  padding:9px;font-size:10.5px;line-height:1.5;white-space:pre-wrap;word-break:break-all}
+/* 导出长图：预览区（长图等比缩到面板里，可滚动看全） */
+.poster-prev{max-height:44vh;overflow:auto;border:1px solid var(--border);border-radius:var(--rc);
+  background:var(--panel-2);padding:8px;box-shadow:inset 0 1px 3px rgba(24,32,64,.06)}
+.poster-prev img{display:block;width:100%;height:auto;border-radius:8px;box-shadow:0 6px 18px rgba(24,32,64,.12)}
+.chip[disabled]{opacity:.5;cursor:not-allowed}
+
+/* =========================================================================
+   视觉与动效打磨（纯样式，可整块回滚；不动任何业务逻辑）
+   —— 不变量：**不要**给 .hp / .seg 加 width 过渡（会破坏血条几何断言）。
+   ========================================================================= */
+:root{
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --shadow-1:0 1px 2px rgba(24,32,64,.05), 0 6px 20px rgba(24,32,64,.06);
+  --shadow-2:0 2px 4px rgba(24,32,64,.05), 0 14px 34px rgba(24,32,64,.10);
+}
+html{scroll-behavior:smooth}
+#colWaves{scroll-behavior:smooth}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* 1. 面板层次：顶部一道极淡的品牌色洗色 + 更立体的投影 */
+.col{position:relative;box-shadow:var(--shadow-1);transition:box-shadow .28s var(--ease)}
+.col::before{content:"";position:absolute;inset:0 0 auto 0;height:120px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(74,99,231,.055),rgba(74,99,231,0));border-radius:var(--r) var(--r) 0 0}
+.col:hover{box-shadow:var(--shadow-2)}
+.col-head h2{position:relative;padding-left:11px}
+.col-head h2::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:4px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--accent),#7d8ff0)}
+details.sec>summary{transition:color .2s var(--ease),background .2s var(--ease);border-radius:8px}
+details.sec>summary:hover{color:var(--accent)}
+details.sec[open]>summary{color:var(--accent)}
+
+/* 2. 按钮 / 芯片 / 输入：统一缓动 + 抬升 + 按下回弹 */
+.btn,.chip,.mini{transition:transform .16s var(--ease),box-shadow .2s var(--ease),
+  border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+.btn:hover,.chip:hover{transform:translateY(-1px)}
+.btn:active,.chip:active,.mini:active{transform:scale(.97)}
+.btn.primary{box-shadow:0 4px 14px rgba(74,99,231,.28)}
+.btn.primary:hover{box-shadow:0 6px 18px rgba(74,99,231,.36)}
+input.field,.mini,select.mini,input[type=number]{transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
+input.field:focus,.mini:focus,select.mini:focus,input[type=number]:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+
+/* 3. 队伍卡：队色描边（--tc 由 renderTeams 内联）+ 抬升 */
+.team{position:relative;transition:transform .22s var(--ease),box-shadow .24s var(--ease),border-color .24s var(--ease)}
+.team::after{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;
+  background:var(--tc,var(--accent));opacity:.0;transition:opacity .24s var(--ease),top .24s var(--ease),bottom .24s var(--ease)}
+.team:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:var(--border-2)}
+.team:hover::after{opacity:.95;top:9px;bottom:9px}
+.team.focus{box-shadow:0 0 0 2px var(--tc,var(--accent)),var(--shadow-2);border-color:transparent}
+.team.focus::after{opacity:1}
+
+/* 4. 角色头像：悬停轻微放大 + 队色/描边层次（不涉及 .hp） */
+#pool .unit{transition:transform .18s var(--ease),box-shadow .22s var(--ease),border-color .2s var(--ease),opacity .22s var(--ease),filter .22s var(--ease)}
+#pool .unit:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 10px 22px rgba(24,32,64,.18);z-index:2}
+.slot .unit{transition:transform .18s var(--ease)}
+.slot:hover{border-color:var(--border-2)}
+
+/* 5. 波次行 / 轮次组头 / 总览行：悬停有反馈，但不动血条本身 */
+.wrow{transition:background .18s var(--ease)}
+.wrow:hover{background:var(--panel-2)}
+.rg-head{transition:background .2s var(--ease)}
+.rg-head:hover{background:#f2f5fb}
+.rrow{transition:background .2s var(--ease)}
+.rrow:hover{background:var(--panel-2)}
+.rrow.on{background:#eef2ff;box-shadow:inset 0 0 0 1px #c6d0ff}
+
+/* 6. 深色积分摘要：数字与档位徽章呼吸感 */
+.sum-total b{display:inline-block;transition:color .3s var(--ease)}
+.sum .stat,.sum .contrib .row{transition:background .22s var(--ease),transform .22s var(--ease)}
+.sum .contrib .row:hover{background:rgba(255,255,255,.11);transform:translateX(2px)}
+.sum-total .tier{transition:background .3s var(--ease),color .3s var(--ease)}
+
+/* 7. 入场：整页只在启动时播一次（body.reveal，1.5s 后移除，避免每次重渲染都闪） */
+@keyframes riseIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+body.reveal header{animation:fadeIn .34s var(--ease) both}
+body.reveal .col{animation:riseIn .52s var(--ease) both}
+body.reveal .col:nth-child(1){animation-delay:.02s}
+body.reveal .col:nth-child(2){animation-delay:.09s}
+body.reveal .col:nth-child(3){animation-delay:.16s}
+body.reveal .teams .team{animation:riseIn .44s var(--ease) both}
+body.reveal .teams .team:nth-child(1){animation-delay:.24s}
+body.reveal .teams .team:nth-child(2){animation-delay:.30s}
+body.reveal .teams .team:nth-child(3){animation-delay:.36s}
+body.reveal .teams .team:nth-child(4){animation-delay:.42s}
+body.reveal .teams .team:nth-child(n+5){animation-delay:.47s}
+body.reveal .sum{animation:riseIn .5s var(--ease) .22s both}
+body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
+
+/* 8. 尊重「减少动态效果」 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important}
+  body.reveal .col,body.reveal .teams .team,body.reveal .sum,body.reveal header,body.reveal .roundgroup{animation:none!important}
+}
+</style>
+<link rel="stylesheet" href="styles/polish.css">
+<link rel="stylesheet" href="styles/role-material.css">
+<link rel="stylesheet" href="styles/echo-score.css">
+<link rel="stylesheet" href="styles/boss-view.css">
+<link rel="stylesheet" href="styles/buff-picker.css">
+<link rel="stylesheet" href="styles/matrix-panel.css">
+<link rel="stylesheet" href="styles/interface.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark">终</div>
+    <div>终焉矩阵 · 队伍排布器<small id="verHint">数据 3.7</small></div>
+  </div>
+  <div class="tabs" id="tabs">
+    
+    <span class="on mode-only">奇点扩张</span>
+  </div>
+  <div class="spacer"></div>
+  <div class="hbtns">
+    <button class="btn" id="btnCrawl" title="从 nanoka + 解包仓库实时拉取当期增幅回路与 BOSS 信息（失败时回退内置数据）">⟳ 更新当期数据</button>
+    <button class="btn secondary" id="btnKuro" title="用库街区 token 登录，导入账号信息与「已拥有」角色">库街区</button>
+    <button class="btn secondary" id="btnClear" title="清空所有队伍与波次编排（不影响期次数据）">重置编排</button>
+    <button class="btn secondary" id="btnExport">导出配置</button>
+    <button class="btn secondary" id="btnImport">导入配置</button>
+    <button class="btn secondary" id="btnPoster" title="把当前排布导出为一张完整长图（PNG）">导出长图</button>
+    <button class="btn" id="btnMore" style="display:none" title="更多操作">更多 ▾</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- 左：共鸣者库 -->
+  <section class="col" id="colPool">
+    <div class="col-head">
+      <h2>共鸣者</h2><span class="cnt" id="poolCnt"></span>
+    </div>
+    <div class="col-body">
+      <input class="field" id="search" placeholder="搜索角色名 / 拼音…">
+      <div class="chips" id="elChips"></div>
+      <div class="chips" id="rankChips"></div>
+      <div class="chips" id="ownChips"></div>
+      <div class="grid" id="pool"></div>
+      <div class="legend" id="elLegend"></div>
+    </div>
+  </section>
+
+  <!-- 中：队伍编排 -->
+  <section class="col" id="colTeams">
+    <div class="col-head">
+      <h2>队伍编排</h2><span class="cnt" id="teamCnt"></span>
+      <div class="spacer" style="flex:1"></div>
+      <span class="cnt" id="modeHint"></span>
+      <button class="btn ghost" id="btnPoolOpen" title="打开共鸣者库，选择角色放入槽位">＋ 选择角色</button>
+    </div>
+    <div class="col-body">
+      <div class="teams" id="teams"></div>
+      <button class="addbtn" id="btnAddTeam" style="margin-top:10px">＋ 添加队伍</button>
+    </div>
+  </section>
+
+  <!-- 右：积分 / 血条 / 波次 / 情报 -->
+  <section class="col" id="colWaves">
+    <div class="sum">
+      <div class="sum-total"><b id="totalScore">0</b><span>预估总积分（各队估分 + 奇藏击杀分）</span><span class="tier" id="tierHint"></span></div>
+      <div class="sum-row" id="sumStats"></div>
+      <div class="contrib" id="contrib"></div>
+    </div>
+
+    <details class="sec" open>
+      <summary>BOSS 血条推演（按轮次）</summary>
+      <div style="padding:0 13px 12px" id="hpOverview"></div>
+    </details>
+
+    <details class="sec" id="accountMatrixSection">
+      <summary>库街区 · 实战矩阵</summary>
+      <div id="accountMatrixBody"></div>
+    </details>
+
+    <details class="sec">
+      <summary>矩阵情报 · 当期增幅回路与敌人</summary>
+      <div class="intel" id="intel"></div>
+    </details>
+
+    <div class="col-head">
+      <h2>波次次序</h2><span class="cnt" id="waveCnt"></span>
+      <div style="flex:1"></div>
+      <button class="btn ghost" id="btnToggleRounds" style="padding:3px 9px">全部展开</button>
+    </div>
+    <div class="col-body">
+      <div class="hint" style="padding-bottom:9px">点击轮次展开，点击波次查看详情。</div>
+      <div class="waves" id="waves"></div>
+    </div>
+
+    <details class="sec">
+      <summary>当期 BOSS · 点击查看</summary>
+      <div style="padding:0 11px 11px">
+        <div class="grid bossgrid" id="bossPool"></div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>疲劳参数 · 数据来源</summary>
+      <div class="settings" id="settingsGrid">
+        <div class="s"><label>角色疲劳上限</label><input type="number" id="setFatigue" step="1" min="1"></div>
+        <div class="s"><label>当前危机特勤（疲劳 +1）</label><select id="setSpecial"></select></div>
+      </div>
+      <div class="hint" id="hpSourceNote" style="padding:0 13px 12px">
+        <b id="hpSourceHead">BOSS 血量与得分倍率取自游戏数据。</b><span id="hpSourceBody"></span>
+        
+      </div>
+    </details>
+  </section>
+</div>
+
+<div id="ghost"></div>
+<div id="poolScrim" hidden></div>
+
+<!-- 库街区账号：token 登录 → 导入账号信息 + 已拥有角色（内容由 renderKuroDlg 渲染） -->
+<div id="kuroDlg" hidden><div class="dlg-card">
+  <div class="dlg-h"><b>库街区账号</b><span class="kmut" id="kuroHead"></span><div style="flex:1"></div><button class="btn ghost" id="kuroClose" title="关闭">✕</button></div>
+  <div class="dlg-b" id="kuroBody"></div>
+</div></div>
+
+<!-- 导出长图（内容由 renderPosterDlg 渲染） -->
+<div id="posterDlg" hidden><div class="dlg-card">
+  <div class="dlg-h"><b>导出排布长图</b><span class="kmut">PNG · 内容完整</span><div style="flex:1"></div><button class="btn ghost" id="posterClose" title="关闭">✕</button></div>
+  <div class="dlg-b" id="posterBody"></div>
+</div></div>
+<div id="toast"></div>
+
+<div id="roleDlg" hidden role="dialog" aria-modal="true" aria-labelledby="roleDialogTitle"><div class="role-dialog-card" id="roleDialogBody"></div></div>
+<div id="buffDlg" class="buff-dialog" hidden><section class="buff-dialog-card" role="dialog" aria-modal="true" aria-labelledby="buffDialogTitle"><div id="buffDialogBody"></div></section></div>
+<div id="bossDlg" class="boss-dialog" hidden><section class="boss-dialog-card" role="dialog" aria-modal="true" aria-labelledby="bossDialogTitle"><button id="bossDialogClose" class="boss-dialog-close" aria-label="关闭 BOSS 信息">✕</button><div id="bossDialogBody"></div></section></div>
+<script src="data/characters.js"></script>
+<script src="data/character_tags.js"></script>
+<script src="data/character_portraits.js"></script>
+<script src="data/weapons.js"></script>
+<script src="data/resource_assets.js"></script>
+<script src="data/echo_portraits.js"></script>
+<script src="data/resource_loader.js"></script>
+<script src="data/echo_score_rules.js"></script>
+<script src="data/echo_score.js"></script>
+<script src="data/role_config.js"></script>
+<script src="data/account_matrix.js"></script>
+<script src="data/monsters.js"></script>
+<script src="data/matrix.js"></script>
+<script src="data/matrix_hp.js"></script>
+<script src="data/matrix_real.js"></script>
+<script>
+/* =========================================================================
+   基础常量
+   ========================================================================= */
+const ELEMENTS = ["冷凝","热熔","导电","气动","衍射","湮灭"];
+const EL_COLOR = {冷凝:"#3d9bf0",热熔:"#f2603c",导电:"#9b5cf0",气动:"#17b394",衍射:"#e0a800",湮灭:"#d93f8e",零:"#8b93a7"};
+const EL_CLASS = {冷凝:"el-冷凝",热熔:"el-热熔",导电:"el-导电",气动:"el-气动",衍射:"el-衍射",湮灭:"el-湮灭",零:"el-零"};
+
+const MATRIX_ASSET = "assets/matrix/";
+const CUSTOM_BOSSES_ENABLED = false; // 暂停自定义敌人与波次编辑
+const NANOKA_BASE = "https://static.nanoka.cc/ww";
+const NANOKA_ASSET = "https://static.nanoka.cc/assets/ww/";
+
+/* 内置的矩阵数据（由 _数据管线/build/build_matrix.py 生成） */
+const MX_STAGES = (typeof MATRIX_STAGES !== "undefined") ? MATRIX_STAGES : {};
+const MX_INDEX  = (typeof MATRIX_INDEX  !== "undefined") ? MATRIX_INDEX  : {};
+/* 页面默认最新奇点扩张；血量来源期次单独由 MX_REAL_KEY 管理。 */
+function singularityStageIds(){
+  return Object.keys(MX_STAGES).filter(id=>MX_STAGES[id].mode==="singularity")
+    .sort((a,b)=>Number(MX_STAGES[b].cycle?.id||0)-Number(MX_STAGES[a].cycle?.id||0)||Number(b)-Number(a));
+}
+const MX_CUR = {...((typeof MATRIX_CURRENT!=="undefined")?MATRIX_CURRENT:{}), singularity:singularityStageIds()[0]||""};
+const MX_VER    = (typeof MATRIX_DATA_VERSION !== "undefined") ? MATRIX_DATA_VERSION : "3.7";
+
+/* 解包数据：每波真实怪物等级 / 积分系数（由 _数据管线/build/build_hp.py 生成） */
+const MX_WAVEHP  = (typeof MATRIX_WAVE_HP  !== "undefined") ? MATRIX_WAVE_HP  : {};
+const MX_HPCURVE = (typeof MATRIX_HP_CURVE !== "undefined") ? MATRIX_HP_CURVE : {};
+const MX_HPMETA  = (typeof MATRIX_HP_META  !== "undefined") ? MATRIX_HP_META  : {baseHp:5000000, roundMult:[1,2,4], curveId:3001, src:"—"};
+
+/* 实测血量表（由 _数据管线/build/build_real.py 生成，玩家提供的通用实测数据）：
+   按「期次(cycle)」索引，逐波给出真实生命值与积分系数，优先于估算公式。
+   ★ 这张表是**通用表**：之后每一期矩阵都沿用同一套「每 (模式, 轮次, 波位)」的血量 / 积分系数，
+     所以未单独录入的期次一律回退到本表（MX_REAL_UNIVERSAL），不再走公式估算。 */
+const MX_REAL_HP = (typeof MATRIX_REAL_HP !== "undefined") ? MATRIX_REAL_HP : {};
+const MX_REAL_META = (typeof MATRIX_REAL_META !== "undefined") ? MATRIX_REAL_META : {version:"—", src:"—"};
+/* 通用表 = MATRIX_REAL_CURRENT 所指期次的那张表（当前以第七期实测数据为基准）。
+   任何期次查不到自己的表时都用它。 */
+const MX_REAL_KEY = (()=>{
+  const c = (typeof MATRIX_REAL_CURRENT !== "undefined") ? (MATRIX_REAL_CURRENT||{}).cycle : null;
+  if(c!=null && MX_REAL_HP[String(c)]) return String(c);
+  const ks = Object.keys(MX_REAL_HP);
+  return ks.length ? ks[0] : null;
+})();
+const MX_REAL_UNIVERSAL = MX_REAL_KEY!=null ? (MX_REAL_HP[MX_REAL_KEY] || null) : null;
+
+const LS_KEY = "wuwa-matrix-planner-v3";
+
+/* =========================================================================
+   工具
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const ghost = document.getElementById("ghost");
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const num = (v,d) => (v===""||v==null||isNaN(v)) ? d : Number(v);
+const teamColor = i => `hsl(${(i*67+220)%360} 62% 56%)`;
+
+/* 数字滚动（纯显示效果）：首次渲染直接落值，之后变化才滚动 */
+function animNum(el, to){
+  if(!el) return;
+  const prev = Number(el.dataset.v);
+  el.dataset.v = to;
+  const reduce = (typeof matchMedia === "function") && matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(!isFinite(prev) || prev===to || reduce){ el.textContent = fmt(to); return; }
+  const now = ()=> (typeof performance!=="undefined" && performance.now) ? performance.now() : Date.now();
+  const t0 = now(), dur = 520;
+  const step = ()=>{
+    const k = Math.min(1, (now()-t0)/dur), e = 1-Math.pow(1-k, 3);
+    el.textContent = fmt(prev + (to-prev)*e);
+    if(k<1) requestAnimationFrame(step); else el.textContent = fmt(to);
+  };
+  requestAnimationFrame(step);
+}
+let toastTimer=null;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("on"),1900);
+}
+
+function avatarHTML(iconPath, name){
+  const ch = (name||"?").replace(/[·\s]/g,"").charAt(0);
+  const hue = [...(name||"?")].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+  const ph = `<div class="ph" style="background:linear-gradient(135deg,hsl(${hue} 42% 62%),hsl(${(hue+38)%360} 46% 48%))">${esc(ch)}</div>`;
+  if(!iconPath) return ph;
+  return `<img src="${iconPath}" alt="${esc(name)}" loading="lazy" draggable="false"
+    onerror="if(!resourceImageError(this)){this.onerror=null;this.style.display='none';this.insertAdjacentHTML('afterend',this.dataset.ph)}" data-ph="${esc(ph).replace(/"/g,'&quot;')}">`;
+}
+function elDot(el){ return `<span class="el" style="background:${EL_COLOR[el]||EL_COLOR.零}"></span>`; }
+
+/* 增幅回路：把 desc 里的 {0}{1} 替换成 param
+   说明：本工具不再计算回路带来的实际增益，只负责让每支队伍能选定一条回路。 */
+function fillDesc(b){
+  return String(b.desc||"").replace(/\{(\d+)\}/g, (m,i)=> (b.param && b.param[+i]!=null) ? b.param[+i] : m);
+}
+
+/* =========================================================================
+   状态
+   ========================================================================= */
+function defaultTeam(i){
+  return {id:nid(), name:"队伍 " + (i+1), members:[null,null,null], buff:"", waves:1, score:0, on:true};
+}
+function blankState(){
+  return {
+    mode:"singularity",
+    stageId:"",
+    period:{id:"", name:"", mode:"singularity", label:"—", cycle:{}, season:{}, source:"—"},
+    buffs:[], roles:[], special:"",
+    fatigueLimit:1, specialId:"",
+    teams:[], waves:[],
+    filters:{el:"全部", rank:"全部", q:"", bq:"", brank:"三星+"},
+    popTeam:null,         // 当前悬浮窗展示的队伍 id（null = 未打开）
+    openRound:{},         // 轮次 -> 是否展开该轮次的波次列表
+    openWave:{},          // 波次 -> 是否展开该波的完整编辑器
+  };
+}
+let state = blankState();
+let uid = 1;
+const allocatedIds=new Set();
+function nid(){
+  let id;
+  do{id="x"+(uid++);}while(allocatedIds.has(id) || state.teams.some(t=>t.id===id) || state.waves.some(w=>w.id===id || (w.enemies||[]).some(e=>e && e.uid===id)));
+  allocatedIds.add(id);return id;
+}
+function repairLoadedIds(data){
+  const records=[...(data.teams||[]),...(data.waves||[])];
+  records.forEach(record=>{if(typeof record.id==='string' && record.id) allocatedIds.add(record.id);});
+  const used=new Set();
+  records.forEach(record=>{
+    if(typeof record.id!=='string' || !record.id || used.has(record.id)) record.id=nid();
+    used.add(record.id);
+  });
+}
+
+
+/* =========================================================================
+   敌人 / 波次构造
+   ========================================================================= */
+/* 敌人对象：{uid, name, icon, res:[属性…], chest:bool}
+   icon 为可直接使用的图片地址：内置期的 BOSS 走本地 assets/matrix，
+   在线爬到的期次直接走 nanoka 外链（新期次本地还没来得及补图）。 */
+function mkBossFromStage(b){
+  return {
+    uid:nid(),
+    wid: b.id,                                     // 该 BOSS 在当期配置里的波次 Id，用于关联解包血量
+    name:b.name || "?",
+    icon: b.iconUrl ? b.iconUrl : (b.icon ? MATRIX_ASSET + b.icon + ".webp" : ""),
+    res: (b.res||[]).slice(),
+    chest: !!b.chest,
+  };
+}
+function mkMonster(m){
+  return {uid:nid(), name:m.name, icon:"assets/boss/"+m.id+".webp", res:m.element?[m.element]:[], chest:/奇藏/.test(m.name)};
+}
+function blankEnemy(){ return {uid:nid(), name:"", icon:"", res:[], chest:false}; }
+
+/* 取某一期的「实测血量表」（按 cycle 索引）。
+   ★ 实测表是通用的：该期若未单独录入，就回退到通用表（各期沿用同一套每波血量）。 */
+function realTableForStage(stage){
+  const cyc = stage && stage.cycle && stage.cycle.id;
+  if(cyc!=null && MX_REAL_HP[String(cyc)]) return MX_REAL_HP[String(cyc)];
+  return MX_REAL_UNIVERSAL;
+}
+/* 名称归一化：把 nanoka 的异体字（万囮牢）对齐到实测表的写法（万囿牢），并去掉间隔号 */
+function normName(s){
+  return String(s==null?"":s).replace(/囮/g,"囿").replace(/[·\s]/g,"");
+}
+/* 以 nanoka 的敌人条目为「壳」：名字 / 图标 / 抗性**全部用当前期次**的。
+   血量由通用（实测）表按「轮次 + 波位」提供（见 realWaveEntry）；
+   得分倍率则按固定口径由轮次算出（1200 血 = 1 分 × 轮次倍率，见 damegaRateOf）。
+   ★ 通用表**不带 BOSS 名字**，也**不要**用任何表里的名字覆盖当期名字——
+   一旦覆盖，切到别的期次（尤其在线爬取到新期次后）就会出现「名字是上一期、图标是当期」的错配。 */
+function realBossFrom(base, tw){
+  const b = mkBossFromStage(base);
+  b.name = String(b.name==null?"":b.name).replace(/囮/g,"囿");   // 显示统一异体字
+  if(tw && tw.chest) b.chest = true;                            // 奇藏标记按波位借通用表
+  return b;
+}
+
+/* 从 stage 配置生成默认波次。
+   若该期有实测血量表，则**按实测表的轮次**展开波次
+   （nanoka 只存前几轮模板，实测表可以更长，例如第七期奇点扩张有 8 轮）；
+   否则沿用旧逻辑：按 BOSS 循环自动切分轮次。 */
+function wavesFromStage(stage){
+  const list = (stage && stage.waves) || [];
+  if(!list.length) return [];
+  let cycleLen = list.length;
+  const seen = {};
+  for(let i=0;i<list.length;i++){
+    const k = (list[i].icon||"") + "|" + (list[i].name||"");
+    if(seen[k]!=null){ cycleLen = i; break; }
+    seen[k] = i;
+  }
+  if(cycleLen<=0) cycleLen = list.length;
+
+  const rt = realTableForStage(stage);
+  if(rt){
+    const tpl = list.slice(0, cycleLen);
+    const pick = i => tpl[i % tpl.length] || tpl[0];
+    if((stage.mode==="steady") && rt.steady){
+      return (rt.steady.waves||[]).map((tw,si)=>({
+        id:nid(), round:Number(rt.steady.round)||0,
+        enemies:[ realBossFrom(pick(si), tw) ],
+      }));
+    }
+    if((stage.mode!=="steady") && rt.singularity){
+      const out = [];
+      (rt.singularity.rounds||[]).forEach(rd=>{
+        (rd.waves||[]).forEach((tw,si)=>{
+          out.push({
+            id:nid(), round:Number(rd.round)||1,
+            enemies:[ realBossFrom(pick(si), tw) ],
+          });
+        });
+      });
+      if(out.length) return out;
+    }
+  }
+
+  return list.map((b,i)=>({
+    id:nid(),
+    round: Math.floor(i/cycleLen)+1,
+    enemies:[ mkBossFromStage(b) ],
+  }));
+}
+
+/* =========================================================================
+   载入期次 / 爬取
+   ========================================================================= */
+function stageLabel(stage){
+  const cyc = (stage.cycle && stage.cycle.name) || "";
+  const sea = (stage.season && stage.season.name) || "";
+  return [cyc, sea].filter(Boolean).join(" · ") || stage.name || "—";
+}
+function applyStage(stageId, opts){
+  opts = opts || {};
+  const stage = MX_STAGES[String(stageId)];
+  if(!stage){ toast("没有这一期的内置数据"); return false; }
+
+  state.stageId = String(stage.id);
+  state.mode = stage.mode;
+  state.buffs = (stage.buffs||[]).map(b=>({id:b.id, name:b.name, desc:b.desc, param:(b.param||[]).slice(), icon:b.icon, iconUrl:b.iconUrl||""}));
+  state.roles = Object.keys(stage.roles||{});
+  state.special = stage.special || "";
+  state.period = {
+    id:String(stage.id), name:stage.name, mode:stage.mode,
+    label:stageLabel(stage),
+    cycle:stage.cycle||{}, season:stage.season||{},
+    teamLimit: stage.teamLimit, maxLoop: stage.maxLoop, monsterLevel: stage.monsterLevel,
+    scoreLevelRule: (stage.scoreLevelRule||[]).slice(),
+    cycleTasks: (stage.cycleTasks||[]).slice(),
+    challengeTasks: (stage.challengeTasks||[]).slice(),
+    source: opts.source || ("内置数据 " + MX_VER),
+    online: !!opts.online,
+  };
+  state.specialId = state.special;
+
+  if(opts.resetWaves !== false){
+    state.waves = wavesFromStage(stage);
+    autoSplitWaves();                    // 重载波次后按上场队伍重新均分（boss rush 的默认编排）
+  }
+  // 队伍里引用的 buff 若不存在则清空
+  const ids = state.buffs.map(b=>b.id);
+  state.teams.forEach(t=>{ if(t.buff && ids.indexOf(t.buff)<0) t.buff=""; });
+  return true;
+}
+
+/* 把 nanoka 原始详情转成内部 stage 结构（字段与 build_matrix.py 保持一致） */
+function iconStem(p){
+  if(!p) return "";
+  const tail = String(p).split("/").pop();
+  return tail.split(".")[0];
+}
+function iconUrl(p){
+  if(!p) return "";
+  let s = String(p);
+  ["/Game/Aki/UI/","/Game/Aki/"].some(pre=>{
+    if(s.indexOf(pre)===0){ s = s.slice(pre.length); return true; }
+    return false;
+  });
+  const head = s.split("/").slice(0,-1).join("/");
+  return NANOKA_ASSET + head + "/" + iconStem(s) + ".webp";
+}
+function stageFromRaw(d){
+  const name = d.name || "";
+  const mode = name.indexOf("稳态")>=0 ? "steady" : "singularity";
+  const buffs = Object.keys(d.buffs||{}).map(k=>{
+    const b = d.buffs[k];
+    return {id:String(k), name:b.name||"", desc:(b.desc||"").replace(/\n/g,""), param:b.param||[],
+            icon:iconStem(b.icon), iconUrl:iconUrl(b.icon)};
+  });
+  const waves = Object.keys(d.waves||{}).map(k=>{
+    const w = d.waves[k];
+    const res = [];
+    Object.keys(w.tag||{}).forEach(tk=>{
+      const nm = ((w.tag[tk]||{}).name||"").replace("抗性","").trim();
+      if(ELEMENTS.indexOf(nm)>=0 && res.indexOf(nm)<0) res.push(nm);
+    });
+    return {
+      id:Number(w.id), name:w.name||"", icon:iconStem(w.icon), iconUrl:iconUrl(w.icon),
+      monsterId:w.monster_id, res:res,
+      chest: (w.name||"").indexOf("奇藏")>=0 || w.monster_id===401800000,
+      desc:w.desc||"",
+    };
+  }).sort((a,b)=>a.id-b.id);
+  const roles = {}; let special = "";
+  Object.keys(d.roles||{}).forEach(cid=>{
+    const lv = d.roles[cid] || {};
+    const lk = Object.keys(lv)[0];
+    if(!lk) return;
+    const e = lv[lk] || {};
+    const desc = (e.desc||"").replace(/\n/g,"");
+    if(desc.indexOf("额外疲劳值")>=0){ special = String(cid); return; }
+    roles[String(cid)] = {desc:desc, param:e.param||[]};
+  });
+  const cyc = d.cycle||{}, sea = d.season||{};
+  return {
+    id:Number(d.id), name:name, mode:mode,
+    monsterLevel:d.monster_level, teamLimit:d.team_limit, maxLoop:d.max_loop_count,
+    cycle:{id:cyc.id, name:cyc.name||""},
+    season:{id:sea.id, tag:sea.tag||"", name:sea.name||"", start:sea.start_version_id||"", end:sea.end_version_id||""},
+    buffs:buffs, waves:waves, roles:roles, special:special,
+    scoreLevelRule:(d.score_level_rule||[]).map(r=>({key:r.key, value:r.value})),
+    cycleTasks:(d.cycle_tasks||[]).map(t=>({index:t.index, desc:t.desc, points:t.points})),
+    challengeTasks:(d.challenge_tasks||[]).map(t=>({index:t.index, desc:t.desc, points:t.points})),
+  };
+}
+
+async function fetchJSON(url, ms){
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), ms||12000);
+  try{
+    const r = await fetch(url, {signal:ctl.signal, cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+
+/* 实时拉取解包数据（每波怪物等级 MonsterLevel / 积分系数 DamegaRate / 奇藏固定分）。
+   数据源为公开解包仓库；raw.githubusercontent 带 CORS 头，浏览器可直接读取。
+   成功则覆盖内置的 MX_WAVEHP，实现"随解包实时更新"。 */
+const WWDATA_REPO = "Arikatsu/WutheringWaves_Data";
+const WWDATA_BRANCHES = ["main", "master", "3.7", "3.6"];
+async function fetchUnpackedWaveHp(){
+  let lastErr = null;
+  for(const br of WWDATA_BRANCHES){
+    try{
+      const url = "https://raw.githubusercontent.com/" + WWDATA_REPO + "/" + br + "/BinData/NewTower/newtowerwave.json";
+      const d = await fetchJSON(url, 15000);
+      if(Array.isArray(d) && d.length){
+        const map = {};
+        d.forEach(r=>{
+          if(r.Level==null) return;
+          (map[String(r.Level)] = map[String(r.Level)] || {})[String(r.Id)] =
+            {ml:r.MonsterLevel, dr:r.DamegaRate, drs:r.DamegaRateShow, kill:r.KillScore||0, mid:r.MonsterId};
+        });
+        Object.keys(map).forEach(k=>{ MX_WAVEHP[k] = map[k]; });
+        return br;
+      }
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error("解包数据不可用");
+}
+
+/* 在线爬取当期矩阵：实时拉取索引 + 当期（奇点扩张 / 稳态协议）详情 */
+async function crawlCurrent(btn){
+  const old = btn ? btn.textContent : "";
+  if(btn){ btn.classList.add("busy"); btn.textContent = "⟳ 爬取中…"; }
+  try{
+    let ver = MX_VER;
+    // 版本号以 manifest 为准，失败再用内置版本
+    try{
+      const man = await fetchJSON("https://static.nanoka.cc/manifest.json", 8000);
+      if(man && man.version) ver = man.version;
+    }catch(e){}
+
+    const idx = await fetchJSON(NANOKA_BASE + "/" + ver + "/newtower.json", 12000);
+    // 选出 cycle 最大的那一期
+    let best = null;
+    Object.keys(idx||{}).forEach(k=>{
+      const v = idx[k] || {};
+      const c = (v.cycle && v.cycle.id) || 0;
+      if(!best || c > best.c) best = {id:k, c:c};
+    });
+    if(!best) throw new Error("索引为空");
+
+    // 找到同 cycle 的两个模式
+    const pick = {steady:"", singularity:""};
+    Object.keys(idx||{}).forEach(k=>{
+      const v = idx[k] || {};
+      if(((v.cycle && v.cycle.id) || 0) !== best.c) return;
+      const nm = (v.name && (v.name.zh || v.name)) || "";
+      const mode = nm.indexOf("稳态")>=0 ? "steady" : "singularity";
+      pick[mode] = k;
+    });
+
+    const want = pick.singularity;
+    if(!want) throw new Error("最新期暂无奇点扩张数据");
+    const raw = await fetchJSON(NANOKA_BASE + "/" + ver + "/zh/newtower/" + want + ".json", 15000);
+    const stage = stageFromRaw(raw);
+
+    // 同步拉取解包数据（怪物等级 / 积分系数 / 奇藏固定分），失败则沿用内置
+    let hpSrc = "内置 " + (typeof MATRIX_HP_VERSION!=="undefined"?MATRIX_HP_VERSION:"—");
+    try{ hpSrc = "在线解包 " + (await fetchUnpackedWaveHp()) + " 分支"; }catch(e){}
+
+    // 把爬到的期次写进内存数据，供期次下拉使用
+    MX_STAGES[String(stage.id)] = stage;
+    MX_INDEX[String(stage.id)] = {name:stage.name, mode:stage.mode, cycle:stage.cycle, season:stage.season};
+    if(pick.steady)   MX_CUR.steady = String(pick.steady);
+    if(pick.singularity) MX_CUR.singularity = String(pick.singularity);
+    MX_CUR.cycle = best.c;
+    const tag = (stage.season && stage.season.tag) || "";
+    document.getElementById("verHint").textContent = "数据 " + ver + (tag?(" · "+tag):"");
+
+    const nBuf = stage.buffs.length, nWave = stage.waves.length;
+    const cover = confirm(
+      "已从 nanoka 获取当期矩阵（在线，数据 " + ver + "）：\n\n" +
+      "· 期次：" + stageLabel(stage) + "\n" +
+      "· 增幅回路：" + nBuf + " 条\n" +
+      "· 波次敌人：" + nWave + " 个\n" +
+      "· 血量数据：" + hpSrc + "\n\n" +
+      "点【确定】→ 载入当期波次编排（覆盖现有波次，保留队伍）\n" +
+      "点【取消】→ 只更新增幅回路与强化共鸣者信息"
+    );
+    applyStage(stage.id, {source:"在线爬取 nanoka " + ver, online:true, resetWaves:cover});
+    renderAll(); renderSettings(); syncModeTabs(); save();
+    toast(cover ? "已载入当期矩阵与波次" : "已更新回路与强化信息");
+  }catch(e){
+    // 离线兜底
+    const sid = MX_CUR[state.mode] || MX_CUR.singularity || MX_CUR.steady || state.stageId;
+    const ok = applyStage(sid, {source:"内置数据 " + MX_VER + "（离线）", online:false, resetWaves:true});
+    renderAll(); renderSettings(); syncModeTabs(); save();
+    toast("在线爬取失败（" + (e && e.message ? e.message : e) + "），已载入内置 " + MX_VER + " 数据");
+    if(!ok) toast("内置数据也不可用，请检查 data/matrix.js");
+  }finally{
+    if(btn){ btn.classList.remove("busy"); btn.textContent = old || "⟳ 爬取当期矩阵"; }
+  }
+}
+
+/* =========================================================================
+   伤害 / 血量 / 得分模型
+   ========================================================================= */
+/* 每波真实字段（解包）：怪物等级 ml、积分系数 dr、奇藏固定分 kill */
+function waveMeta(w){
+  const s = MX_WAVEHP[String(state.stageId)] || {};
+  const e = (w.enemies||[]).find(x=>x && x.wid!=null);
+  return e ? (s[String(e.wid)] || null) : null;
+}
+/* ---- 实测血量（优先） ----
+   实测表是通用的：**只提供生命值**（+ 奇藏标记与击破固定分），不走「等级曲线 × 轮次倍率」估算；
+   得分倍率是固定口径（1200 血 1 分 × 轮次倍率），不再从表里读积分系数。
+   查找键为 (模式, 轮次, 波位)——表里没有名字，所以**只按波位对齐**
+   （因为同一 R 内各 BOSS 血量一致，换一期即使 BOSS 名字不同也应对上同一套血量）。
+   当前期次若没有自己的表，就回退到通用表 MX_REAL_UNIVERSAL。 */
+function realTable(){
+  const cyc = state.period && state.period.cycle && state.period.cycle.id;
+  if(cyc!=null && MX_REAL_HP[String(cyc)]) return MX_REAL_HP[String(cyc)];
+  return MX_REAL_UNIVERSAL;
+}
+/* 该波在「同一轮次内」的序位（0 起）；通用表就按这个「波位」对齐（表里不带 BOSS 名字） */
+function waveSlotInRound(w){
+  const same = state.waves.filter(x=>(Number(x.round)||0)===(Number(w.round)||0));
+  const i = same.indexOf(w);
+  return i >= 0 ? i : 0;
+}
+/* 取该波在通用（实测）表里对应的数值条目：**只按「轮次 + 波位」匹配，不比名字**。
+   因为各期 BOSS 名字不同（同一 R 内数值一致），用波位对齐才能让任何一期都对上同一套血量。 */
+function realWaveEntry(w){
+  const tbl = realTable();
+  if(!tbl) return null;
+  if(!(w.enemies||[]).some(e=>e && e.name)) return null;   // 空波次不取表
+  const slot = waveSlotInRound(w);
+  if(state.mode==="steady"){
+    const arr = (tbl.steady && tbl.steady.waves) || [];
+    return arr[slot] || null;
+  }
+  const rounds = (tbl.singularity && tbl.singularity.rounds) || [];
+  const rd = rounds.find(r=>Number(r.round)===Number(w.round));
+  if(!rd) return null;
+  return (rd.waves||[])[slot] || null;
+}
+/* 该期实测表里的轮次范围（用于限制「轮次」输入框） */
+function realRoundRange(){
+  const tbl = realTable();
+  if(!tbl) return null;
+  if(state.mode==="steady") return {min:0, max:0, count:1};   // 稳态协议固定 r0
+  const rounds = (tbl.singularity && tbl.singularity.rounds) || [];
+  if(!rounds.length) return null;
+  const nums = rounds.map(r=>Number(r.round)).filter(n=>!isNaN(n));
+  return {min:Math.min.apply(null,nums), max:Math.max.apply(null,nums), count:rounds.length};
+}
+/* 等级成长曲线：以 Lv100 归一到 1.0（取自 monsterpropertygrowth CurveId 3001） */
+function levelRatio(ml){
+  const r = MX_HPCURVE[String(ml)];
+  const r100 = MX_HPCURVE["100"];
+  if(r==null || r100==null) return 1;
+  return r / r100;
+}
+/* 轮次血量倍率（游戏内每轮敌人显著增强） */
+function roundHpMult(round){
+  const m = MX_HPMETA.roundMult || [1,2,4];
+  const r = Math.max(1, Number(round)||1);
+  return r<=m.length ? m[r-1] : m[m.length-1] * Math.pow(2, r-m.length);
+}
+/* 单只 BOSS 血量：优先取实测表，其次按 基准 × 等级曲线 × 轮次倍率 估算 */
+function enemyHpOf(w){
+  const rw = realWaveEntry(w);
+  if(rw && rw.hp!=null) return Number(rw.hp);
+  const meta = waveMeta(w);
+  const ml = (meta && meta.ml!=null) ? meta.ml : (state.period.monsterLevel||100);
+  return (MX_HPMETA.baseHp||5000000) * levelRatio(ml) * roundHpMult(w.round);
+}
+function waveHp(w){
+  const alive = (w.enemies||[]).filter(e=>e && e.name);
+  return alive.reduce((a)=>a+enemyHpOf(w),0);
+}
+function waveHasChest(w){ return (w.enemies||[]).some(e=>e && e.name && e.chest); }
+/* ---- 终焉矩阵得分口径（玩家给定，权威；别再改回按整数的「积分系数」折算） ----
+   基础：**1200 血 = 1 分**；再乘「轮次得分倍率」：
+     r0 稳态协议 = 1.0，r1 = 1.0，r2 = 1.15，r3 起 = 1.25（封顶）
+   奇藏波：得分再 ×1.1；击破奇藏另加固定分 1000。
+   ⇒ 得分 = 血量 ÷ 1200 × 倍率 × (奇藏 ? 1.1 : 1)
+   等效积分系数（沿用 ×1e6 口径，便于复用旧代码/测试）：
+     damegaRateOf = 1e6 × 倍率 × (奇藏?1.1:1) ÷ 1200
+     → r0/r1 = 833.333、r2 = 958.333、r3+ = 1041.667、r1 奇藏 = 916.667
+   ⚠️ 历史坑：旧实现直接读实测表里**取整后的 dr（834/960/1043…）**，那是近似值，
+      会让每轮「可提供分数」系统性偏高 0.08%~0.13%（r1 显示 4,681，正确是 4,677）。 */
+const MX_SCORE_BASE = 1200;                 // 每 1200 点血量 = 1 分
+function roundScoreMult(round){
+  const r = Number(round)||0;
+  if(r <= 1) return 1.0;                    // r0 稳态协议 与 r1
+  if(r === 2) return 1.15;
+  return 1.25;                              // r3 起封顶
+}
+function scoreMultOf(w){ return roundScoreMult(w.round) * (waveHasChest(w) ? 1.1 : 1); }
+/* 等效积分系数：得分 = 伤害 × damegaRateOf ÷ 1e6 */
+function damegaRateOf(w){ return 1e6 * scoreMultOf(w) / MX_SCORE_BASE; }
+/* 得分 = 伤害 ÷ 1200 × 轮次倍率（奇藏再 ×1.1） */
+function scoreOfDamage(w, dmg){ return dmg * scoreMultOf(w) / MX_SCORE_BASE; }
+function killScoreOf(w){
+  const rw = realWaveEntry(w);
+  if(rw && rw.kill!=null) return Number(rw.kill);
+  const meta = waveMeta(w);
+  return (meta && meta.kill) ? Number(meta.kill) : 0;
+}
+/* 满血理论得分（上限提示） */
+function wavePotential(w){
+  if(!(w.enemies||[]).some(e=>e&&e.name)) return 0;
+  return scoreOfDamage(w, waveHp(w)) + killScoreOf(w);
+}
+/* ============ 说明：本工具不再估算角色输出与回路增益 ============
+   得分由玩家按自己的打法自行填写（每队一个"预估得分"）。
+   ★ 换算口径（一次对齐，别再退回旧模型）：
+     「预估得分」= 该队**可用积分预算**。工具按顺序逐波消耗：
+       打完某波剩余血量所需的分数 = 该波剩余血量 × 该波积分系数 ÷ 1e6；
+     预算够 → 打穿该波、扣掉这些分；不够 → 用剩余预算按同一系数折算成伤害，打完留残血。
+     因此「得分」与「血量」始终由**该波自己的积分系数**严格互推：
+       得分 = 伤害 × 系数 ÷ 1e6   ⇔   伤害 = 得分 × 1e6 ÷ 系数
+     打穿一波 R1 正好扣 4,681 分（＝该波「可提供分数」），不会再出现
+     「可提供 4,681、详情里却是 5,762」那种两个口径打架的情况。
+   —— 旧模型（先按「计划波次的平均积分系数」把估分折成一个伤害池，再用池子去啃血条）
+     必须弃用：平均系数是跨轮次混算的，会让同一波在「可提供分数」与「详情分摊」之间对不上。 */
+
+/* 按队伍顺位依次消耗波次：一支队伍推不掉的血条，由下一支队伍接着打（跨队继承）。
+   波次数量由 autoSplitWaves() 按上场队伍自动均分（已无手动入口）；每队拿玩家自填的「预估得分」当积分预算逐波消耗。 */
+function simulate(){
+  const hp = {};                                   // 波次剩余血量
+  state.waves.forEach(w=>{ hp[w.id] = waveHp(w); });
+
+  const rec = {};                                  // 队伍 -> 记录
+  const seg = {};                                  // 波次 -> [{team, damage}]
+  state.waves.forEach(w=>{ seg[w.id] = []; });
+
+  const active = state.teams.filter(t=>t.on);
+  let front = 0;                                   // 当前最靠前、尚未击破的波次下标
+  let totalScore = 0, totalDamage = 0;
+
+  active.forEach((t,ti)=>{
+    const plan = Math.max(0, Number(t.waves)||0);
+    const scoreIn = Math.max(0, Number(t.score)||0);
+    const r = {damage:0, dmgScore:0, scoreIn:scoreIn, used:0, idle:0, killScore:0, chests:0, score:0,
+               cleared:0, killed:[], perWave:{}, plan:plan, planned:0,
+               shortfall:0, shortWave:"", from:front, to:front-1};
+    rec[t.id] = r;
+    let budget = scoreIn;                          // 可用积分预算（不再预先折成伤害池）
+    for(let j=0; j<plan && front < state.waves.length; ){
+      const w = state.waves[front];
+      const need = hp[w.id];                       // 该波剩余血量
+      if(need <= 1e-6){                            // 该波此前已被打穿，顺位前移（不占用本队波次额度）
+        r.cleared++; if(r.to < front) r.to = front; front++; continue;
+      }
+      if(budget <= 1e-9){                          // 预算耗尽，本波打不动，留给后续队伍
+        r.shortfall = need; r.shortWave = w.id; if(r.to < front) r.to = front; break;
+      }
+      r.planned++;
+      const dr = damegaRateOf(w);
+      const needScore = need * dr / 1e6;           // 打完该波剩余血量所需的分数
+      if(budget >= needScore - 1e-9){              // 预算够 → 打穿
+        const use = need;
+        hp[w.id] = 0; budget -= needScore;
+        r.damage += use; totalDamage += use;
+        r.perWave[w.id] = (r.perWave[w.id]||0) + use;
+        r.dmgScore += scoreOfDamage(w, use);
+        seg[w.id].push({team:t.id, damage:use});
+        r.to = front; front++; r.cleared++; r.killed.push(w.id);
+        const ks = killScoreOf(w);                 // 击破奇藏的固定分（BOSS 为 0）
+        if(ks > 0){ r.killScore += ks; r.chests++; }
+        j++;
+      } else {                                     // 预算不足 → 用剩余预算按同一系数折算伤害，留残血
+        const use = budget * 1e6 / dr;
+        hp[w.id] -= use; budget = 0;
+        r.damage += use; totalDamage += use;
+        r.perWave[w.id] = (r.perWave[w.id]||0) + use;
+        r.dmgScore += scoreOfDamage(w, use);
+        seg[w.id].push({team:t.id, damage:use});
+        r.shortfall = hp[w.id]; r.shortWave = w.id; r.to = front;
+        break;
+      }
+    }
+    /* 最终得分 = 本次实际消耗的积分 + 本队击破奇藏的固定分。
+       预算被用完（绝大多数情况）时 = 玩家填的估分 + 奇藏加分；若该队波次已全打穿而预算还有剩，
+       剩的部分不计入（r.idle），并会在详情里提示。 */
+    r.used = scoreIn - budget;
+    r.idle = Math.max(0, budget);
+    r.score = r.used + r.killScore;
+    totalScore += r.score;
+  });
+
+  return {hp:hp, rec:rec, seg:seg, totalScore:totalScore, totalDamage:totalDamage, cursor:front, active:active};
+}
+
+/* 一次渲染内只算一遍推演结果 */
+let SIM = null;
+function simOf(){ if(!SIM) SIM = simulate(); return SIM; }
+function invalidateSim(){ SIM = null; }
+
+/* 按队伍顺序依次消耗波次，得到每队计划覆盖的波次 */
+function layout(){
+  const order = state.teams.filter(t=>t.on);
+  let cursor = 0;
+  const rows = [];
+  order.forEach((t,idx)=>{
+    const n = Math.max(0, Number(t.waves)||0);
+    const covered = state.waves.slice(cursor, cursor+n);
+    cursor += n;
+    rows.push({team:t, order:idx, covered, from:cursor-n+1, to:cursor});
+  });
+  return {rows, cursor, total:state.waves.length};
+}
+function teamScore(t){
+  const s = simOf();
+  return s.rec[t.id] ? s.rec[t.id].score : 0;
+}
+/* 疲劳统计：上场的队伍每个角色消耗 1 点 */
+function fatigueMap(){
+  const L = layout();
+  const map = {};
+  L.rows.forEach(r=>{ r.team.members.forEach(m=>{ if(m) map[m.id]=(map[m.id]||0)+1; }); });
+  return map;
+}
+/* 终焉矩阵里，治疗型共鸣者（奶妈）的疲劳上限比普通角色高 1 点（默认 1 点 → 奶妈 2 点）。
+   名单：穗穗 1110 / 守岸人 1505 / 维里奈 1503 / 白芷 1103 / 莫宁 1209 / 卜灵 1307 */
+const HEALER_IDS = ["1110","1505","1503","1103","1209","1307"];
+function fatigueLimitOf(cid){
+  return state.fatigueLimit
+       + (HEALER_IDS.indexOf(cid) >= 0 ? 1 : 0)     // 奶妈 +1（矩阵内 2 点体力上限）
+       + (state.specialId===cid ? 1 : 0);           // 危机特勤 +1
+}
+/* 属性冲突检测 */
+function conflicts(w, team){
+  const sim = simOf();
+  const ids = new Set((sim.seg[w.id]||[]).filter(s=>s.damage>1e-6).map(s=>s.team));
+  const teams = team ? (ids.has(team.id) ? [team] : []) : sim.active.filter(t=>ids.has(t.id));
+  const bad = [];
+  (w.enemies||[]).forEach(e=>{
+    if(!e || !e.res || !e.res.length) return;
+    teams.forEach(t=>t.members.forEach(m=>{
+      if(!m) return;
+      const c = CH_INDEX[m.id] || m;
+      const tags = typeof CHARACTER_TAGS!=="undefined" ? CHARACTER_TAGS[c.id]||[] : c.tags||[];
+      if(tags.includes("主力输出") && e.res.includes(c.element))
+        bad.push({enemy:e.name, member:c.name, el:c.element});
+    }));
+  });
+  return bad;
+}
+/* 增幅回路仅作选择，不参与任何数值计算；如需查看每条回路的效果，见右侧「矩阵情报」。 */
+
+/* =========================================================================
+   渲染：角色库
+   ========================================================================= */
+function renderElChips(){
+  const box = $("#elChips");
+  const opts = ["全部", ...ELEMENTS];
+  box.innerHTML = opts.map(o=>{
+    const cls = o==="全部" ? "el-全部" : EL_CLASS[o];
+    return `<button class="chip ${cls} ${state.filters.el===o?"on":""}" data-el="${o}">${o}</button>`;
+  }).join("");
+  box.querySelectorAll("[data-el]").forEach(b=>b.onclick=()=>{ state.filters.el=b.dataset.el; renderElChips(); renderPool(); });
+
+  const rb = $("#rankChips");
+  rb.innerHTML = ["全部","五星","四星"].map(o=>
+    `<button class="chip rank ${state.filters.rank===o?"on":""}" data-rk="${o}">${o}</button>`).join("");
+  rb.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{ state.filters.rank=b.dataset.rk; renderElChips(); renderPool(); });
+
+  $("#elLegend").innerHTML = ELEMENTS.map(e=>
+    `<i><span class="dot" style="background:${EL_COLOR[e]}"></span>${e}</i>`).join("");
+
+  /* 库街区账号状态 / 「仅显示已拥有」开关 */
+  const ob = $("#ownChips");
+  if(ob){
+    if((KURO.ownedNames||[]).length){
+      ob.innerHTML = `<button class="chip own ${KURO.hideUnowned?"on":""}" data-own="1">仅显示已拥有（${KURO.ownedNames.length}）</button>`
+                   + `<button class="chip" data-kuro="1">库街区账号</button>`;
+    }else{
+      ob.innerHTML = `<button class="chip" data-kuro="1">＋ 接入库街区（导入已拥有角色）</button>`;
+    }
+    ob.querySelectorAll("[data-own]").forEach(b=>b.onclick=()=>{ KURO.hideUnowned=!KURO.hideUnowned; kuroSaveAcc(); renderElChips(); renderPool(); });
+    ob.querySelectorAll("[data-kuro]").forEach(b=>b.onclick=()=>setKuroOpen(true));
+  }
+}
+function characterLabel(c){return c.name+(c.gender?" · "+c.gender:"");}
+function kuroOwnsCharacter(c){return KURO.ownedIds?.length?KURO.ownedIds.includes(String(c.id)):kuroOwnedSet().has(c.name);}
+function renderPool(){
+  const f = state.filters;
+  const used = fatigueMap();
+  const byId = {};
+  CHARACTERS.forEach(c=>{ byId[c.id]=c; });
+  const ownedSet = kuroOwnedSet();
+  const hasKURO = ownedSet.size > 0;
+  let list = Object.values(byId);
+  if(f.el!=="全部") list = list.filter(c=>c.element===f.el);
+  if(f.rank==="五星") list = list.filter(c=>c.rank===5);
+  if(f.rank==="四星") list = list.filter(c=>c.rank===4);
+  const q = f.q.trim().toLowerCase();
+  if(q) list = list.filter(c=>c.name.toLowerCase().includes(q) || (c.en||"").toLowerCase().includes(q));
+  if(hasKURO && KURO.hideUnowned) list = list.filter(c=>kuroOwnsCharacter(c));   // 仅显示已拥有
+  list.sort((a,b)=> Number(fatigueRemaining(a.id,used)===0)-Number(fatigueRemaining(b.id,used)===0) || (b.rank-a.rank) || a.name.localeCompare(b.name,"zh"));
+  if(pickedChar && fatigueRemaining(pickedChar,used)===0) pickedChar=null;
+
+  $("#poolCnt").textContent = list.length + " / " + Object.keys(byId).length +
+    (state.roles.length ? (" · 强化 " + state.roles.length) : "") +
+    (hasKURO ? (" · 已拥有 " + ownedSet.size) : "");
+  const box = $("#pool");
+  if(!list.length){ box.innerHTML = `<div class="empty-note" style="grid-column:1/-1">没有匹配的角色</div>`; return; }
+  box.innerHTML = list.map(c=>{
+    const n = used[c.id]||0, lim = fatigueLimitOf(c.id);
+    const exhausted = fatigueRemaining(c.id,used)===0;
+    const isOwn = kuroOwnsCharacter(c);
+    const noown = hasKURO && !isOwn;
+    let badge = "";
+    if(n>0) badge = `<span class="used ${n>=lim?"low":""}">${n}/${lim}</span>`;
+    const isSp = state.specialId===c.id;
+    const isRole = state.roles.indexOf(c.id)>=0;
+    if(isRole && !badge) badge = `<span class="used buff" title="当期强化共鸣者">强</span>`;
+    const title = [characterLabel(c), c.element, c.rank+"星",
+      isRole?"强化共鸣者":"", isSp?"危机特勤":"", (n?("出战 "+n+"/"+lim):""),
+      hasKURO ? (isOwn?"库街区：已拥有":"库街区：未拥有") : "", exhausted?"体力已用完":"剩余体力 "+fatigueRemaining(c.id,used)].filter(Boolean).join(" · ");
+    return `<div class="unit ${noown?"noown":""} ${exhausted?"exhausted":""}" draggable="${!exhausted}" aria-disabled="${exhausted}" data-cid="${c.id}" title="${esc(title)}">
+      ${avatarHTML(charIcon(c), c.name)}
+      ${elDot(c.element)}
+      ${c.gender?`<span class="rover-gender" title="${esc(c.gender)}漂泊者">${c.gender==="男"?"♂":"♀"}</span>`:""}
+      ${badge}
+      ${isOwn?'<span class="own" title="库街区：已拥有">✓</span>':""}
+      <div class="nm">${esc(characterLabel(c))}${isRole?" ★":""}</div>
+    </div>`;
+  }).join("");
+  bindUnitDrag(box);
+}
+function charIcon(c){ return "assets/char/" + c.id + ".webp"; }
+
+/* =========================================================================
+   渲染：队伍
+   ========================================================================= */
+const CH_INDEX = {};
+CHARACTERS.forEach(c=>{ CH_INDEX[c.id]=c; });
+
+/* 队伍位置操作：支持点击换位与拖动边缘滚动，保留队伍对象与全部设置。 */
+function moveTeamTo(tid, position, focusControl){
+  const from = state.teams.findIndex(t=>t.id===tid);
+  if(from<0 || !Number.isInteger(position)) return false;
+  const to = Math.max(0,Math.min(state.teams.length-1,position));
+  if(from===to) return false;
+  const scroller = document.querySelector("#colTeams > .col-body");
+  const scrollTop = scroller ? scroller.scrollTop : 0;
+  const [team] = state.teams.splice(from,1);
+  state.teams.splice(to,0,team);
+  renderAll(); save();
+  if(scroller) scroller.scrollTop = scrollTop;
+  const card = [...document.querySelectorAll("#teams .team")].find(c=>c.dataset.tid===tid);
+  if(card){
+    card.classList.add("order-moved");
+    setTimeout(()=>card.classList.remove("order-moved"),800);
+    const control = focusControl==="position" ? card.querySelector("[data-team-position]")
+      : card.querySelector('[data-step="'+focusControl+'"]:not(:disabled)') || card.querySelector("[data-team-position]");
+    if(control && control.focus) control.focus({preventScroll:true});
+    if(card.scrollIntoView) card.scrollIntoView({block:"nearest",behavior:
+      typeof matchMedia==="function" && matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth"});
+  }
+  toast(team.name + " 已移至列表第 " + (to+1) + " 位");
+  return true;
+}
+let TEAM_DRAG = null;
+function stopTeamDrag(){
+  if(TEAM_DRAG && typeof cancelAnimationFrame==="function") cancelAnimationFrame(TEAM_DRAG.frame);
+  TEAM_DRAG = null;
+  document.querySelectorAll("#teams .team").forEach(c=>{c.style.opacity="";c.classList.remove("drop-on");});
+}
+function startTeamDrag(tid){
+  stopTeamDrag();
+  TEAM_DRAG = {tid,x:-1,y:-1,frame:0,last:0};
+  const tick = time=>{
+    const drag = TEAM_DRAG;
+    if(!drag) return;
+    const scroller = document.querySelector("#colTeams > .col-body");
+    if(scroller && drag.y>=0){
+      const rect = scroller.getBoundingClientRect();
+      const inner = scroller.scrollHeight>scroller.clientHeight+1;
+      const top = inner ? Math.max(0,rect.top) : Math.max(document.querySelector("header").getBoundingClientRect().bottom,0);
+      const bottom = Math.min(window.innerHeight,rect.bottom);
+      const edge = Math.min(64,Math.max(20,(bottom-top)/4));
+      if(drag.x>=rect.left && drag.x<=rect.right && drag.y>=top && drag.y<=bottom){
+        const speed = drag.y<top+edge ? -Math.min(1,(top+edge-drag.y)/edge)
+          : drag.y>bottom-edge ? Math.min(1,(drag.y-bottom+edge)/edge) : 0;
+        const amount = speed * Math.min(32,drag.last ? time-drag.last : 16) * .65;
+        if(inner) scroller.scrollTop += amount;
+        else if(amount) window.scrollBy(0,amount);
+      }
+    }
+    drag.last = time;
+    drag.frame = requestAnimationFrame(tick);
+  };
+  TEAM_DRAG.frame = requestAnimationFrame(tick);
+}
+document.addEventListener("dragover",ev=>{
+  if(TEAM_DRAG){ TEAM_DRAG.x=ev.clientX; TEAM_DRAG.y=ev.clientY; }
+},true);
+document.addEventListener("drop",stopTeamDrag);
+document.addEventListener("dragend",stopTeamDrag);
+window.addEventListener("blur",stopTeamDrag);
+
+function syncTeamNames(){
+  state.teams.forEach((team,index)=>{
+    const initials=(team.members||[]).slice(0,3).filter(Boolean).map(member=>Array.from(String(member.name||"").trim())[0]||"").join("");
+    team.name=initials || "队伍 " + (index+1);
+  });
+}
+function renderTeams(){
+  syncTeamNames();
+  const box = $("#teams");
+  const sim = simOf();
+  $("#teamCnt").textContent = state.teams.length + " 队 · " + state.teams.filter(t=>t.on).length + " 上场";
+  const lim = state.period.teamLimit;
+  $("#modeHint").textContent = "队伍数量不限";
+
+  const L = layout();
+  const fm = fatigueMap();
+  const activeIdx = {};
+  state.teams.filter(t=>t.on).forEach((t,i)=>{ activeIdx[t.id]=i; });
+
+  box.innerHTML = state.teams.map((t,i)=>{
+    const seq = activeIdx[t.id];
+    const row = L.rows.find(x=>x.team.id===t.id);
+    const covered = row ? row.covered : [];
+    const r = sim.rec[t.id] || {damage:0,dmgScore:0,scoreIn:Math.max(0,Number(t.score)||0),used:0,idle:0,killScore:0,chests:0,score:Math.max(0,Number(t.score)||0),cleared:0,killed:[],perWave:{},shortfall:0,plan:0,from:0,to:-1};
+    const scoreIn = Math.max(0, Number(t.score)||0);
+    const buff = state.buffs.find(x=>x.id===t.buff);
+    const planWaves = Number(t.waves)||0;                 // 自动均分得到的计划波次（内部用）
+    const engaged = Object.keys(r.perWave||{}).length;    // 实际出伤波次；至少两波才算转火
+    const overLimit = t.members.some(m=> m && (fm[m.id]||0) > fatigueLimitOf(m.id));
+    const conflict = state.waves.some(w=>conflicts(w,t).length>0);
+    const color = seq!=null ? teamColor(seq) : "var(--idle)";
+
+    return `<div class="team ${t.on?"":"disabled"} ${state.hoverTeam===t.id?"focus":""}" data-tid="${t.id}" style="--tc:${color}">
+      <div class="team-top">
+        <span class="grip" draggable="true" title="拖动调整次序">⠿</span>
+        <span class="team-seq" style="background:${seq!=null?`linear-gradient(135deg,${color},${color})`:"var(--idle)"}">${seq!=null ? ("第 " + (seq+1) + " 顺位") : "待命"}</span>
+        <span class="team-name" title="按槽位顺序取角色名字的第一个字，自动命名">${esc(t.name)}</span>
+        <div style="flex:1"></div>
+        <button class="mini" data-toggle="${t.id}" title="是否上场">${t.on?"上场":"待命"}</button>
+        <button class="mini" data-delteam="${t.id}" title="删除队伍">✕</button>
+      </div>
+      <div class="team-order" role="group" aria-label="${esc(t.name)}的位置调整">
+        <button class="order-btn" data-team-step="${t.id}" data-step="-1" ${i===0?"disabled":""} aria-label="将${esc(t.name)}上移一位" title="上移一位">↑ 上移</button>
+        <button class="order-btn" data-team-step="${t.id}" data-step="1" ${i===state.teams.length-1?"disabled":""} aria-label="将${esc(t.name)}下移一位" title="下移一位">↓ 下移</button>
+        <label class="order-jump"><span>移至</span><select data-team-position="${t.id}" aria-label="将${esc(t.name)}移至指定列表位置">
+          ${state.teams.map((other,n)=>`<option value="${n}" ${n===i?"selected":""}>第 ${n+1} 位${other.on?"":" · 待命"}</option>`).join("")}
+        </select></label>
+      </div>
+      <div class="slots">
+        ${t.members.map((m,si)=>`<div class="member-unit">${slotHTML(t,m,si)}${m?roleWeaponStrip(t,m):""}</div>`).join("")}
+      </div>
+      <div class="team-meta">
+        <label>增幅回路</label>
+        <button class="buff-picker" data-buff="${t.id}" aria-haspopup="dialog" title="${buff?esc(fillDesc(buff)):"选择增幅回路"}">${buffButtonHTML(buff)}</button>
+        <label style="margin-left:4px">预估得分</label>
+        <input type="number" min="0" step="100" class="mini" style="width:92px" value="${scoreIn}" data-score="${t.id}" title="按你自己的打法估计这支队能拿到的分数（已含全部增益、不含奇藏击杀分）。工具把它当『可用积分』逐波消耗：打完某波需要的分数 = 该波剩余血量 ÷ 1200 × 该波轮次倍率，打穿一波 R1 正好 4,677 分；积分不够就打完留残血。击破奇藏另加 1000 分。">
+        ${t.on && teamSwitchCount(r)>0?`<span class="tag cross" title="自动统计：按血条推演结果，本队实际打到 ${engaged} 个 BOSS 波次，转火 ${teamSwitchCount(r)} 次（含从上一队继承的残血波），其中完全击破 ${r.cleared} 个${engaged!==planWaves?`；均分计划为 ${planWaves} 波`:""}">转火 ${teamSwitchCount(r)} 次</span>`:""}
+        ${overLimit?`<span class="tag bad">疲劳超限</span>`:""}
+        ${conflict?`<span class="tag warn">属性冲突</span>`:""}
+      </div>
+      <div class="team-foot" data-foot="${t.id}" title="${esc(
+          "可用积分 " + fmt(scoreIn) + " · 已消耗 " + fmt(r.used) + " · 折算伤害 " + fmt(r.damage) +
+          (buff ? (" · 回路：" + buff.name) : "")
+        )}　点击查看跨波次推演">
+        <div class="team-result"><span class="team-score">${ scoreIn>0 ? ("最终 " + fmt(r.score) + " 分") : "未填估分" }</span><span class="team-dps"><small>120 秒平均 DPS</small><b>${roleDps(r.damage)}<i> w/s</i></b></span></div>
+        <span class="open-hint">${state.popTeam===t.id?"▲ 收起详情":"查看推演 →"}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  /* ---- 事件 ---- */
+  box.querySelectorAll("[data-team-step]").forEach(b=>{
+    b.onclick = ev=>{
+      ev.stopPropagation();
+      const from = state.teams.findIndex(t=>t.id===b.dataset.teamStep);
+      moveTeamTo(b.dataset.teamStep,from+Number(b.dataset.step),b.dataset.step);
+    };
+  });
+  box.querySelectorAll("[data-team-position]").forEach(sel=>{
+    sel.onchange = ()=>moveTeamTo(sel.dataset.teamPosition,Number(sel.value),"position");
+  });
+  box.querySelectorAll("[data-toggle]").forEach(b=>{
+    b.onclick = () => { const t=findTeam(b.dataset.toggle); t.on=!t.on; autoSplitWaves(); renderAll(); save(); };
+  });
+  box.querySelectorAll("[data-delteam]").forEach(b=>{
+    b.onclick = () => {
+      const t = findTeam(b.dataset.delteam);
+      if(!t) return;
+      if(!confirm("删除「" + t.name + "」？")) return;
+      state.teams = state.teams.filter(x=>x.id!==b.dataset.delteam);
+      autoSplitWaves();
+      renderAll(); save();
+    };
+  });
+  box.querySelectorAll("[data-buff]").forEach(sel=>{
+    sel.onclick = ev => {ev.stopPropagation();openBuffDialog(sel.dataset.buff);};
+  });
+  /* 点击队伍底栏 → 弹出 / 收起「跨波次详情」悬浮窗，并顺带把右侧定位到它打到的轮次 */
+  box.querySelectorAll("[data-foot]").forEach(f=>{
+    f.onclick = ev => {
+      ev.stopPropagation();
+      const id = f.dataset.foot;
+      if(state.popTeam===id){ closeTeamPop(); renderTeams(); return; }   // 再点一次收起
+      state.popTeam = id;
+      const t = findTeam(id), rd = t ? teamFrontRound(t) : null;
+      if(rd!=null) state.openRound[rd] = true;
+      renderWavesKeepScroll();
+      applyTeamHighlight(state.hoverTeam);
+      renderTeams();                                  // 先重排卡片，再定位悬浮窗
+      renderTeamPop();
+    };
+  });
+  /* 鼠标悬停某队 → 右侧预览自动跳转到它打到的轮次并高亮血条 */
+  box.querySelectorAll(".team").forEach(card=>{
+    card.addEventListener("mouseenter", ()=> setHoverTeam(card.dataset.tid));
+    card.addEventListener("mouseleave", ()=>{ if(state.hoverTeam===card.dataset.tid) setHoverTeam(null); });
+  });
+  box.querySelectorAll("[data-score]").forEach(inp=>{
+    inp.oninput = () => {                                  // 输入时轻量刷新，避免抢焦点
+      const t = findTeam(inp.dataset.score);
+      t.score = Math.max(0, Number(inp.value)||0);
+      invalidateSim();
+      refreshTeamResults(simOf());
+      renderWavesKeepScroll(); renderSummary(); applyTeamHighlight(state.hoverTeam); renderTeamPop(); save();
+    };
+    inp.onchange = () => {                                 // 失焦后完整刷新
+      const t = findTeam(inp.dataset.score);
+      t.score = Math.max(0, Number(inp.value)||0);
+      renderAll(); save();
+    };
+  });
+  box.querySelectorAll(".slot").forEach(s=>{
+    const tid=s.dataset.tid, si=Number(s.dataset.si);
+    s.addEventListener("dragover", e=>{
+      if(Array.from(e.dataTransfer.types||[]).includes("text/team")) return;
+      e.preventDefault(); s.classList.add("drop-on");
+    });
+    s.addEventListener("dragleave", ()=> s.classList.remove("drop-on"));
+    s.addEventListener("drop", e=>{
+      // 队伍拖放由外层卡片处理，头像槽不拦截调整顺序。
+      if(Array.from(e.dataTransfer.types||[]).includes("text/team")) return;
+      e.preventDefault(); e.stopPropagation(); s.classList.remove("drop-on");
+      const cid = e.dataTransfer.getData("text/cid");
+      if(cid) return placeChar(tid, si, cid);
+      const fromT = e.dataTransfer.getData("text/fromTeam");
+      const fromS = e.dataTransfer.getData("text/fromSlot");
+      if(fromT && fromS!=="") return moveChar(fromT, Number(fromS), tid, si);
+    });
+    s.onclick = () => {
+      const t=findTeam(tid);if(!t) return;
+      const cur=t.members[si];
+      if(pickedChar){ placeChar(tid, si, pickedChar); pickedChar=null; return; }
+      if(cur){
+        /* 评审 P1：点击已填槽位打开角色配置；角色替换仍沿用先选再放。
+           改为提示「先选角色再点此替换 / 用 ✕ 移除」。 */
+        setPoolOpen(false);
+        openRoleDialog(tid,cur.id);
+        return;
+      }
+      if(ROLE_DIALOG) closeRoleDialog();closeTeamPop();
+      pendingCharSlot={tid,si};pickedChar=null;pickedBoss=null;
+      setPoolOpen(true);markPicked();                       // 记住空槽位，点击角色即放入
+    };
+    s.addEventListener("keydown",ev=>{if(ev.target===s && (ev.key==="Enter" || ev.key===" ")){ev.preventDefault();s.click();}});
+    const del = s.querySelector("[data-rm]");
+    if(del) del.onclick = ev => { ev.stopPropagation(); findTeam(tid).members[si]=null; renderAll(); save(); };
+    if(s.classList.contains("filled")){
+      s.addEventListener("dragstart", e=>{
+        e.dataTransfer.effectAllowed="move";
+        e.dataTransfer.setData("text/fromTeam", tid);
+        e.dataTransfer.setData("text/fromSlot", String(si));
+        const m = findTeam(tid).members[si];
+        if(m){ ghost.innerHTML = `<img src="${charIcon(m)}" alt="">`; ghost.classList.add("on"); }
+      });
+      s.addEventListener("dragend", ()=> ghost.classList.remove("on"));
+    }
+  });
+  box.querySelectorAll(".grip").forEach(g=>{
+    const card = g.closest(".team");
+    g.addEventListener("dragstart", e=>{
+      e.dataTransfer.setData("text/team", card.dataset.tid);
+      e.dataTransfer.effectAllowed="move";
+      startTeamDrag(card.dataset.tid);
+      card.style.opacity=".4";
+    });
+    g.addEventListener("dragend", stopTeamDrag);
+  });
+  box.querySelectorAll(".team").forEach(card=>{
+    card.addEventListener("dragover", e=>{
+      const t=Array.from(e.dataTransfer.types||[]);
+      if(t.indexOf("text/team")<0) return;
+      e.preventDefault(); card.classList.add("drop-on");
+    });
+    card.addEventListener("dragleave", ()=> card.classList.remove("drop-on"));
+    card.addEventListener("drop", e=>{
+      const src = e.dataTransfer.getData("text/team");
+      card.classList.remove("drop-on");
+      if(!src || src===card.dataset.tid) return;
+      e.preventDefault(); e.stopPropagation();
+      const to = state.teams.findIndex(t=>t.id===card.dataset.tid);
+      stopTeamDrag();
+      moveTeamTo(src,to);
+    });
+  });
+}
+
+/* 队伍明细面板：以玩家自填的预估得分为准，展示血条削减 */
+/* 悬浮窗内容：队伍得分明细 + 跨波次 / 跨轮次推演（只读展示） */
+function teamPreviewHTML(t, r, covered){
+  const buff = state.buffs.find(x=>x.id===t.buff);
+  const sim = simOf();
+  const totalHp = covered.reduce((a,w)=>a+waveHp(w),0);
+  const scoreIn = Math.max(0, Number(t.score)||0);
+
+  const mems = t.members.filter(Boolean).map(m=>{
+    const isRole = state.roles.indexOf(m.id)>=0;
+    return `<i><span class="d" style="background:${EL_COLOR[m.element]||EL_COLOR.零}"></span>${esc(m.name)}${isRole?" ★":""}</i>`;
+  }).join("");
+
+  /* ---- 跨越范围：起始波 / 结束波 / 跨几个轮次 / 哪些队在同一波上转火 ---- */
+  const fromIdx = r.to>=r.from ? r.from : -1;
+  const toIdx   = r.to>=r.from ? r.to   : -1;
+  const wFrom = fromIdx>=0 ? state.waves[fromIdx] : null;
+  const wTo   = toIdx>=0 ? state.waves[toIdx] : null;
+  const rounds = fromIdx>=0 ? Array.from(new Set(state.waves.slice(fromIdx,toIdx+1).map(w=>Number(w.round)||0))) : [];
+  const heirs = [];
+  if(fromIdx>=0){
+    state.waves.slice(fromIdx,toIdx+1).forEach(w=>{
+      (sim.seg[w.id]||[]).forEach(s=>{ if(s.damage>1e-6 && s.team!==t.id && heirs.indexOf(s.team)<0) heirs.push(s.team); });
+    });
+  }
+  const cross = `<div class="tpop-cross">
+      <span>跨越 <b>${fromIdx>=0?("第 "+(fromIdx+1)+" 波 · R"+(Number(wFrom.round)||0)):"—"}</b> → <b>${toIdx>=0?("第 "+(toIdx+1)+" 波 · R"+(Number(wTo.round)||0)):"—"}</b></span>
+      <span>计划覆盖 <b>${covered.length}</b> 波</span>
+      ${teamSwitchCount(r)>0?`<span>转火 <b>${teamSwitchCount(r)}</b> 次</span>`:""}
+      <span>跨 <b>${rounds.length}</b> 个轮次</span>
+      <span>击破 <b>${r.cleared}</b> 波</span>
+      ${heirs.length?`<span>同波共战 <b>${heirs.map(id=>esc((findTeam(id)||{}).name||"")).join("、")}</b></span>`:`<span>无同波共战</span>`}
+    </div>`;
+
+  const rows = covered.map((w,i)=>{
+    const idx = state.waves.indexOf(w);
+    const per = r.perWave[w.id]||0;
+    const hp0 = waveHp(w);
+    /* 按「实际开打顺序」铺分段：sim.seg[w.id] 就是各队依顺位 push 进来的，天然是时间顺序。
+       本队的蓝色分段要落在它真正该在的位置，而不是永远贴最左边。 */
+    const segs = (sim.seg[w.id]||[]).filter(s=>s.damage>1e-6);
+    const myPos = segs.findIndex(s=>s.team===t.id);
+    const before = myPos>0 ? segs.slice(0,myPos) : [];          // 先于本队打这波的队（本队接手其残血）
+    const after  = myPos>=0 ? segs.slice(myPos+1) : segs.slice(); // 本队之后接手这波的队
+    const dealtBefore = before.reduce((a,s)=>a+s.damage,0);
+    const left = Math.max(0, hp0 - dealtBefore - per);          // 本队打完后、留给后续队伍的残量
+    const done = hp0<=1e-6 || left <= 1e-6;
+    const names = (w.enemies||[]).filter(e=>e&&e.name).map(e=>e.name).join(" / ") || "—";
+    /* 该波得分 = 本队在该波造成的伤害 × 该波积分系数 ÷ 1e6（＋本队击破奇藏的 1000 分）。
+       打穿一波 R1 正好 = 4,681，与该波「可提供分数」完全一致。 */
+    const mine = (r.killed||[]).indexOf(w.id) >= 0;
+    const sc = scoreOfDamage(w, per) + (mine ? killScoreOf(w) : 0);
+    const prev = idx>0 ? state.waves[idx-1] : null;
+    const newRound = !!(prev && (Number(prev.round)||0)!==(Number(w.round)||0));
+    const tnm = id => esc((findTeam(id)||{}).name||"");
+    return `<div class="wl">
+      <div class="top">
+        <span class="no">波 ${idx+1}·R${w.round}</span>
+        ${newRound?`<span class="no" style="background:#b1650a" title="本波是本队的跨轮切入点">跨轮</span>`:""}
+        <span class="nm">${esc(names)}</span>
+        <span class="sc">${fmt(sc)}</span>
+      </div>
+      <div class="hp sm">
+        ${hp0>0 ? segs.map(s=>{
+          const isMine = s.team===t.id;
+          /* 颜色只认「队伍」，不认「是否击破」：同一队在每一波的伤害段恒用同一色，
+             与总览血条、悬停高亮保持一致；本队是否收掉这波，交给右侧文字（已击破 / 残留）表达。 */
+          const bg = segColorOf(s.team);
+          return `<span class="seg" style="width:${Math.min(100,s.damage/hp0*100)}%;background:${bg};${isMine?"":"opacity:.72"}" title="${tnm(s.team)}${isMine?"（本队）":""}：造成 ${fmt(s.damage)}"></span>`;
+        }).join("") : ""}
+        ${done ? "" : `<span class="rem"></span>`}
+      </div>
+      <div class="hpline">
+        <span>本队削减 <b>${fmt(per)}</b> / ${fmt(hp0)}</span>
+        <span>${done ? '<span style="color:var(--ok);font-weight:700">已击破</span>' : ('残留 <b style="color:var(--bad)">'+fmt(left)+'</b>')}</span>
+      </div>
+      ${before.length?`<div class="hpline" style="color:var(--muted)">同波先打：${before.map(s=>tnm(s.team)+" "+fmt(s.damage)).join("、")}</div>`:""}
+      ${after.length?`<div class="hpline" style="color:var(--muted)">后续接战：${after.map(s=>tnm(s.team)+" "+fmt(s.damage)).join("、")}</div>`:""}
+    </div>`;
+  }).join("") || `<div class="note">${ scoreIn>0
+    ? "该队暂无覆盖到的波次（前序队伍未推到这里）。"
+    : "预估得分为 0，尚未折算伤害，血条不会削减——请按你的打法填写预估得分。" }</div>`;
+
+  const shortIdx = r.shortWave ? state.waves.findIndex(w=>w.id===r.shortWave) : -1;
+  const status = r.shortfall>0
+    ? `<div class="note bad">⚠ 按你填的 ${fmt(scoreIn)} 分，第 ${shortIdx>=0?(shortIdx+1):"-"} 波打不穿，残留 ${fmt(r.shortfall)} 血量交给后续队伍；可调高该队预估得分。</div>`
+    : (covered.length ? `<div class="note">计划覆盖 ${covered.length} 波，实际击破 ${r.cleared} 波。</div>` : "");
+
+  return `<div class="tprev">
+    <div class="tprev-head">队伍明细 · 血条推演</div>
+    <div class="tprev-body">
+      <div class="mem">${mems || '<i>未编入角色</i>'}</div>
+      <div class="tpop-sec">跨波次范围</div>
+      ${cross}
+      <div class="tpop-sec">得分</div>
+      <div class="kv"><span>你填的预估得分（可用积分；已含全部增益，不含奇藏击杀分）</span><b style="color:var(--accent)">${fmt(scoreIn)}</b></div>
+      <div class="kv"><span>本次实际消耗积分（＝逐波伤害折算之和）</span><b>${fmt(r.used)}</b></div>
+      <div class="kv"><span>奇藏击杀分（本队击破 ${r.chests||0} 个）</span><b style="color:${(r.killScore||0)>0?"var(--ok)":"var(--muted)"}">${(r.killScore||0)>0?("+"+fmt(r.killScore)):"0"}</b></div>
+      <div class="kv"><span>最终得分＝消耗积分＋奇藏击杀分</span><b style="color:var(--accent);font-size:13px">${fmt(r.score)}</b></div>
+      ${(r.idle||0)>0.5 ? `<div class="note warn">该队波次已全部打穿，剩余 ${fmt(r.idle)} 分估分未计入——可适当调低估分，或让该队多分几波。</div>` : ""}
+      <div class="tpop-sec">伤害推演</div>
+      <div class="kv"><span>位次上需打掉的总血量</span><b>${fmt(totalHp)}</b></div>
+      <div class="kv"><span>本队实际削减血量</span><b>${fmt(r.damage)}</b></div>
+      <div class="kv"><span>伤害折算得分（＝伤害 × 该波系数 ÷ 1e6）</span><b>${fmt(r.dmgScore)}</b></div>
+      ${r.shortfall>0 ? `<div class="kv"><span>还需补的输出</span><b style="color:var(--bad)">${fmt(r.shortfall)}</b></div>` : ""}
+      ${status}
+      ${buff ? `<div class="note">已选回路：${esc(buff.name)}——${esc(fillDesc(buff))}</div>` : `<div class="note warn">未选择增幅回路，仅作排布记录。</div>`}
+      <div class="tpop-sec">逐波明细</div>
+      ${rows}
+    </div>
+  </div>`;
+}
+
+function slotHTML(t, m, si){
+  if(!m) return `<div class="slot" data-tid="${t.id}" data-si="${si}" title="点击打开角色库，为「${esc(t.name)}」的第 ${si+1} 位选择角色"><span class="empty">＋ 选择角色</span></div>`;
+  const isRole = state.roles.indexOf(m.id)>=0;
+  return `<div class="slot filled" data-tid="${t.id}" data-si="${si}" draggable="true" role="button" tabindex="0" aria-label="查看${esc(m.name)}的武器、共鸣链和声骸配置" title="${esc(m.name)} · 点击查看角色配置">
+    ${avatarHTML(charIcon(m), m.name)}
+    ${elDot(m.element)}
+    ${roleSlotBadge(t,m)}
+    <button class="del" data-rm="1" title="移除">✕</button>
+    ${isRole?`<span class="rk">★</span>`:""}
+    <div class="nm">${esc(m.name)}</div>
+  </div>`;
+}
+function findTeam(id){ return state.teams.find(t=>t.id===id); }
+function refreshTeamResults(sim){
+  document.querySelectorAll('#teams .team').forEach(card=>{
+    const team=findTeam(card.dataset.tid);if(!team) return;
+    const record=sim.rec[team.id] || {damage:0,score:0};
+    const dps=card.querySelector('.team-dps b'),score=card.querySelector('.team-score');
+    if(dps) dps.innerHTML=roleDps(record.damage)+'<i> w/s</i>';
+    if(score) score.textContent=Number(team.score)>0?'最终 '+fmt(record.score)+' 分':'未填估分';
+  });
+}
+/* 左侧选择以当前上场队伍的体力占用为准。 */
+function fatigueRemaining(cid, used=fatigueMap()){
+  return Math.max(0, fatigueLimitOf(cid)-(used[cid]||0));
+}
+function canSelectChar(cid){return !!CH_INDEX[cid] && fatigueRemaining(cid)>0;}
+function teamSwitchCount(record){
+  const hitWaves=Object.values(record.perWave||{}).filter(damage=>Number(damage)>1e-6).length;
+  return Math.max(0,hitWaves-1);
+}
+function placeChar(tid, si, cid){
+  const c=CH_INDEX[cid],t=findTeam(tid);
+  if(!c || !t || !Number.isInteger(si) || si<0 || si>=t.members.length) return;
+  if(!canSelectChar(cid)){toast("「"+c.name+"」体力已用完");return false;}
+  t.members=t.members.map(m=>m && m.id===cid ? null : m);
+  t.members[si]=c;
+  pickedChar=null;pendingCharSlot=null;
+  renderAll();save();
+  setPoolOpen(false);
+}
+function moveChar(fromTid, fromSi, toTid, toSi){
+  const a = findTeam(fromTid), b = findTeam(toTid); if(!a||!b) return;
+  if(a.id===b.id && fromSi===toSi) return;
+  const mv = a.members[fromSi];
+  const tgt = b.members[toSi];
+  a.members[fromSi] = tgt || null;
+  b.members[toSi] = mv || null;
+  renderAll(); save();
+}
+
+/* =========================================================================
+   渲染：波次（含血条）
+   ========================================================================= */
+/* =========================================================================
+   渲染：波次（按轮次分组 · 折叠 + 悬停联动）
+   ========================================================================= */
+/* 把波次按「轮次」分组（保持 state.waves 的原有顺序） */
+function waveGroups(){
+  const g = [];
+  state.waves.forEach((w,i)=>{
+    const rd = Number(w.round)||0;
+    let last = g[g.length-1];
+    if(!last || last.round!==rd){ last = {round:rd, waves:[]}; g.push(last); }
+    last.waves.push({w:w, idx:i});
+  });
+  return g;
+}
+/* 展示实际出伤的波次；尚未开始时保留第一轮供排布预览。完整波次仍参与推演。 */
+function visibleWaveGroups(sim){
+  sim = sim || simOf();
+  const groups = waveGroups();
+  const reached = groups.map(g=>({round:g.round, waves:g.waves.filter(({w})=>
+    (sim.seg[w.id]||[]).some(s=>s.damage>1e-6))})).filter(g=>g.waves.length);
+  return reached.length ? reached : groups.slice(0,1);
+}
+/* 某队"打到哪一轮"：以它最后一个覆盖到的波次所在轮次为准（未参战返回 null） */
+function teamFrontRound(t){
+  const r = simOf().rec[t.id];
+  if(!r || r.to < r.from) return null;
+  const w = state.waves[r.to];
+  return w ? (Number(w.round)||0) : null;
+}
+/* 段色 / 归属：以实际推演结果判定 */
+function segColorOf(tid){
+  const i = state.teams.filter(t=>t.on).findIndex(t=>t.id===tid);
+  return i<0 ? "var(--idle)" : teamColor(i);
+}
+function ownerOfWave(sim, w){
+  const first = (sim.seg[w.id]||[]).find(s=>s.damage>1e-6);
+  return first ? sim.active.find(t=>t.id===first.team)||null : null;
+}
+/* 高亮与归属只使用实际造成伤害的队伍。 */
+function waveTeamIds(L, sim, w){
+  return [...new Set((sim.seg[w.id]||[]).filter(s=>s.damage>1e-6).map(s=>s.team))];
+}
+function roundTeamIds(L, sim, gw){
+  return [...new Set(gw.flatMap(w=>waveTeamIds(L,sim,w)))];
+}
+function reorderWave(fromId, toId){
+  if(!CUSTOM_BOSSES_ENABLED) return;
+  const from = state.waves.findIndex(w=>w.id===fromId), to = state.waves.findIndex(w=>w.id===toId);
+  if(from<0 || to<0 || from===to) return;
+  const [mv] = state.waves.splice(from,1);
+  state.waves.splice(to,0,mv);
+  renderAll(); save();
+}
+/* 展开某轮次并滚动到那里（右侧预览区联动） */
+function jumpToRound(round){
+  if(round==null) return;
+  state.openRound[round] = true;
+  renderWavesKeepScroll();
+  const el = document.querySelector('#waves .roundgroup[data-round="'+round+'"]');
+  if(el && el.scrollIntoView) el.scrollIntoView({behavior:"smooth", block:"nearest"});
+  applyTeamHighlight(state.hoverTeam);
+}
+/* 高亮：只点亮「该队打到的 BOSS 血条分段」——每个队伍的分段本来就是不同颜色，
+   所以只要把属于它的那些分段点亮即可；不描边整条血条、也不框整轮 / 整个波次行。 */
+function applyTeamHighlight(tid){
+  const inPop = el => !!(el.closest && el.closest("#teamPop"));
+  document.querySelectorAll(".hp .seg").forEach(el=>{
+    if(inPop(el)) return;                            // 悬浮窗内的血条不参与联动
+    el.classList.toggle("glow", !!tid && el.dataset.team===tid);
+  });
+}
+/* 悬停某队：右侧预览自动展开并跳到该队所打到的轮次 */
+function setHoverTeam(tid){
+  if(state.hoverTeam===tid) return;
+  state.hoverTeam = tid;
+  document.querySelectorAll("#teams .team").forEach(c=>{
+    c.classList.toggle("focus", !!tid && c.dataset.tid===tid);
+  });
+  if(tid){
+    const t = findTeam(tid);
+    const rd = t ? teamFrontRound(t) : null;
+    if(rd!=null){
+      state.openRound[rd] = true;
+      renderWavesKeepScroll();
+      const el = document.querySelector('#waves .roundgroup[data-round="'+rd+'"]');
+      const pane=document.getElementById("colWaves");
+      if(el && pane && pane.scrollHeight>pane.clientHeight+1) pane.scrollTop+=el.getBoundingClientRect().top-pane.getBoundingClientRect().top;
+    }else{
+      renderWavesKeepScroll();
+    }
+  }else{
+    renderWavesKeepScroll();
+  }
+  applyTeamHighlight(tid);
+}
+/* 重新渲染波次列表但保持滚动位置（避免编辑/悬停时跳动） */
+function renderWavesKeepScroll(){
+  const scroller = document.getElementById("colWaves");
+  const y = scroller ? scroller.scrollTop : 0;
+  const pageY=window.scrollY,pageX=window.scrollX;
+  renderWaves();
+  if(scroller){
+    if(scroller.scrollTo) scroller.scrollTo({top:y,behavior:"instant"});else scroller.scrollTop=y;
+  }
+  if(Number.isFinite(pageY) && window.scrollTo) window.scrollTo({top:pageY,left:pageX,behavior:"instant"});
+}
+
+/* ---------- 队伍详情悬浮窗（点击队伍底栏弹出） ---------- */
+function anchorForTeam(tid){
+  return document.querySelector('#teams .team[data-tid="'+tid+'"] .team-foot')
+      || document.querySelector('#teams .team[data-tid="'+tid+'"]');
+}
+function openTeamPop(tid){ state.popTeam = tid; renderTeamPop(); }
+function positionTeamPop(anchor){
+  const pop = document.getElementById("teamPop");
+  if(!pop) return;
+  const w = pop.offsetWidth || 536, h = pop.offsetHeight || 380;
+  const vw = window.innerWidth || document.documentElement.clientWidth || 1280;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+  let left, top;
+  if(anchor && anchor.getBoundingClientRect && anchor.getBoundingClientRect().width){
+    const b = anchor.getBoundingClientRect();
+    left = b.right + 12;
+    if(left + w > vw - 10) left = b.left - w - 12;    // 右侧放不下就翻到左边
+    top  = b.top - 6;
+  }else{
+    left = (vw - w)/2; top = 80;
+  }
+  left = Math.min(Math.max(10, left), Math.max(10, vw - w - 10));
+  top  = Math.min(Math.max(10, top ), Math.max(10, vh - h - 10));
+  pop.style.left = left + "px";
+  pop.style.top  = top  + "px";
+}
+function renderTeamPop(){
+  const pop = document.getElementById("teamPop");
+  if(!pop) return;
+  clearTimeout(closeTeamPop._t); pop.classList.remove("pop-out");
+  const tid = state.popTeam;
+  const t = tid ? findTeam(tid) : null;
+  if(!t){ pop.hidden = true; pop.innerHTML = ""; return; }
+  const sim = simOf();
+  const r = sim.rec[t.id] || {damage:0,dmgScore:0,scoreIn:Math.max(0,Number(t.score)||0),used:0,idle:0,killScore:0,chests:0,
+                              score:Math.max(0,Number(t.score)||0),cleared:0,killed:[],perWave:{},shortfall:0,plan:0,from:0,to:-1};
+  const engaged = (r.to>=r.from) ? state.waves.slice(r.from, r.to+1) : [];
+  const seq = state.teams.filter(x=>x.on).findIndex(x=>x.id===tid);
+  const color = seq>=0 ? teamColor(seq) : "var(--idle)";
+  pop.innerHTML = `<div class="tpop-head">
+      <span class="dot" style="background:${color}"></span>
+      <span class="tpop-title">${esc(t.name)}${seq>=0?(" · 第 "+(seq+1)+" 顺位"):" · 待命"}</span>
+      <button class="tpop-close" data-popclose="1" title="关闭（Esc）">✕</button>
+    </div>
+    <div class="tpop-body">${teamPreviewHTML(t, r, engaged)}</div>`;
+  const c = pop.querySelector("[data-popclose]");
+  if(c) c.onclick = closeTeamPop;
+  pop.hidden = false;
+  positionTeamPop(anchorForTeam(tid));                // 内容高度变化后重新贴靠
+}
+function closeTeamPop(){
+  state.popTeam = null;
+  const pop = document.getElementById("teamPop");
+  if(!pop) return;
+  if(pop.hidden){ pop.innerHTML = ""; return; }
+  /* 先播放淡出/上移动画，再真正隐藏（170ms 与 tpopOut 对齐） */
+  pop.classList.add("pop-out");
+  clearTimeout(closeTeamPop._t);
+  closeTeamPop._t = setTimeout(()=>{
+    pop.classList.remove("pop-out"); pop.hidden = true; pop.innerHTML = "";
+  }, 170);
+}
+/* 点窗外 / 按 Esc / 改窗口尺寸 → 收起悬浮窗 */
+document.addEventListener("click", ev=>{
+  if(!state.popTeam || !ev.target || !ev.target.closest) return;
+  if(ev.target.closest("#teamPop") || ev.target.closest("[data-foot]")) return;
+  closeTeamPop();
+});
+document.addEventListener("keydown", ev=>{ if(ev.key==="Escape") closeTeamPop(); });
+window.addEventListener("resize", ()=>{ if(state.popTeam) closeTeamPop(); });
+/* 单波详情：只读展示 */
+function waveDetailHTML(w, idx){
+  const sim = simOf();
+  const hp0 = waveHp(w), left = Math.max(0, sim.hp[w.id]);
+  const dead = left <= 1e-6;
+  const has = (w.enemies||[]).some(e=>e&&e.name);
+  const cfs = conflicts(w);
+  const rw = realWaveEntry(w);
+  const segs = (sim.seg[w.id]||[]).filter(s=>s.damage>1e-6);
+  const segColor = segColorOf;
+  return `<div class="wrow-detail" data-wdetail="${w.id}">
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+      <span style="font-size:10.5px;color:var(--muted);font-weight:700">轮次</span>
+      <span class="wave-mult">R${w.round}</span>
+      ${rw
+        ? `<span class="wave-mult" title="得分倍率：1200 血 = 1 分，×轮次倍率${waveHasChest(w)?"，奇藏再 ×1.1":""}">倍率 ×${scoreMultOf(w).toFixed(2)}</span>`
+        : `<span class="wave-mult" title="得分倍率：1200 血 = 1 分，×轮次倍率${waveHasChest(w)?"，奇藏再 ×1.1":""}">倍率 ×${scoreMultOf(w).toFixed(2)}</span>
+           <span class="wave-mult hp" title="血量 = 基准 × 等级曲线 × 轮次倍率">血 ×${roundHpMult(w.round).toFixed(2)}</span>`}
+      <div style="flex:1"></div>
+    </div>
+    <div class="wave-enemies" style="padding:0;min-height:0">
+      ${(w.enemies||[]).map((e,ei)=>eSlotHTML(w,e,ei)).join("")}
+    </div>
+    <div class="hpline">
+      <span>满血 <b>${fmt(hp0)}</b></span>
+      <span>已造成 <b>${fmt(hp0-left)}</b></span>
+      <span>${dead ? '<span style="color:var(--ok);font-weight:700">已击破</span>' : ('剩余 <b style="color:var(--bad)">'+fmt(left)+'</b> ('+Math.round(left/hp0*100)+'%)')}</span>
+      <div style="flex:1"></div>
+      <span>可提供 <b>${fmt(wavePotential(w))}</b> 分</span>
+    </div>
+    ${segs.length?`<div class="hpline">${segs.map(s=>`<span><span class="dot sq" style="background:${segColor(s.team)};vertical-align:middle"></span> ${esc((findTeam(s.team)||{}).name||"")} ${fmt(s.damage)}</span>`).join("")}</div>`:""}
+    ${cfs.length?`<div class="note warn">属性冲突：${cfs.map(c=>esc(c.member+"("+c.el+") × "+c.enemy)).join("；")}</div>`:""}
+    ${!has?`<div class="note">当期敌人数据暂未提供。</div>`:""}
+  </div>`;
+}
+
+function renderWaves(){
+  const sim = simOf();
+  const box = $("#waves");
+  $("#waveCnt").textContent = visibleWaveGroups(sim).reduce((n,g)=>n+g.waves.length,0) + " 波 · 已击破 " + countKilled(sim) + " 波";
+
+  const L = layout();
+  const groups = visibleWaveGroups(sim);
+  const togBtn = $("#btnToggleRounds");
+  if(togBtn) togBtn.textContent = groups.some(g=>state.openRound[g.round]) ? "全部折叠" : "全部展开";
+  if(!groups.length){
+    box.innerHTML = `<div class="waves-empty">暂无波次，请载入当期矩阵数据。</div>`;
+    return;
+  }
+
+  box.innerHTML = groups.map(g=>{
+    const gw = g.waves.map(x=>x.w);
+    const hpTot = gw.reduce((a,w)=>a+waveHp(w),0);
+    const potTot = gw.reduce((a,w)=>a+wavePotential(w),0);
+    const leftTot = gw.reduce((a,w)=>a+Math.max(0,sim.hp[w.id]),0);
+    const alive = gw.filter(w=>(w.enemies||[]).some(e=>e&&e.name));
+    const kd = alive.filter(w=>sim.hp[w.id]<=1e-6).length;
+    const tids = roundTeamIds(L, sim, gw);
+    const isOpen = !!state.openRound[g.round];
+    const segs = [];
+    gw.forEach(w=>(sim.seg[w.id]||[]).forEach(s=>{ if(s.damage>1e-6) segs.push(s); }));
+
+    const bar = hpTot>0 ? `<span class="hp sm rg-hp" data-teams="${tids.join(" ")}">
+        ${segs.map(s=>`<span class="seg" data-team="${s.team}" style="width:${Math.min(100,s.damage/hpTot*100)}%;background:${segColorOf(s.team)}" title="${esc((findTeam(s.team)||{}).name||"")}：造成 ${fmt(s.damage)}"></span>`).join("")}
+        ${leftTot<=1e-6 ? "" : `<span class="rem"></span>`}
+      </span>` : "";
+
+    const head = `<div class="rg-head" role="button" tabindex="0" aria-expanded="${isOpen}" data-rtoggle="${g.round}" title="点击展开 / 收起该轮次的波次">
+      <span class="toggle">▸</span><span class="rg-action">${isOpen?"收起":"展开"}</span>
+      <span class="rg-badge">R${g.round}</span>
+      <span class="rg-meta">${alive.length} 波 · 满血 <b>${fmt(hpTot)}</b> · 可提供 <b>${fmt(potTot)}</b></span>
+      ${bar}
+      <span class="rg-meta">${kd}/${alive.length} 击破</span>
+      ${tids.map(id=>{ const t=findTeam(id); return t ? `<span class="wown" style="background:#eef0f5;color:#3a4358;border-left:3px solid ${segColorOf(id)}">${esc(t.name)}</span>` : ""; }).join("")}
+    </div>`;
+
+    const body = g.waves.map(({w,idx})=>{
+      const hp0 = waveHp(w), left = sim.hp[w.id], dead = left<=1e-6;
+      const has = (w.enemies||[]).some(e=>e&&e.name);
+      const owner = ownerOfWave(sim,w);
+      const wsegs = (sim.seg[w.id]||[]).filter(s=>s.damage>1e-6);
+      const wtids = waveTeamIds(L, sim, w);
+      const exp = !!state.openWave[w.id];
+      const e0 = (w.enemies||[]).find(e=>e&&e.name);
+      const nm = (w.enemies||[]).filter(e=>e&&e.name).map(e=>e.name).join(" / ") || "空波次";
+      const st = !has ? "—" : (dead ? "已击破" : (left>=hp0-1e-6 ? "未触及" : "残 "+Math.round(left/hp0*100)+"%"));
+      return `<div class="wrow ${dead&&has?"dead":""} ${exp?"exp":""}" data-wid="${w.id}" data-owner="${owner?owner.id:""}" data-teams="${wtids.join(" ")}" title="点击展开 / 收起该波详情">
+          <span class="wno">${idx+1}</span>
+          <span class="wico">${e0?`<button class="boss-avatar-btn" data-boss-wave="${w.id}" data-boss-index="${w.enemies.indexOf(e0)}" title="查看 ${esc(e0.name)}" aria-label="查看 ${esc(e0.name)} 大图和信息"><img src="${esc(e0.icon)}" alt="" loading="lazy" draggable="false" onerror="if(!resourceImageError(this))this.style.visibility='hidden'"></button>`:""}</span>
+          <span class="wnm" title="${esc(nm)}">${esc(nm)}</span>
+          <span class="wbar">${ has && hp0>0
+            ? `<span class="hp sm" data-teams="${wtids.join(" ")}">${wsegs.map(s=>`<span class="seg" data-team="${s.team}" style="width:${Math.min(100,s.damage/hp0*100)}%;background:${segColorOf(s.team)}" title="${esc((findTeam(s.team)||{}).name||"")}：造成 ${fmt(s.damage)}"></span>`).join("")}${dead?"":`<span class="rem"></span>`}</span>`
+            : `<span class="rg-meta">—</span>` }</span>
+          <span class="wst">${st}</span>
+          <span class="wown" style="background:${owner?"var(--accent-soft)":"#eef0f5"};color:${owner?"var(--accent)":"var(--muted)"}">${owner?esc(owner.name):"未分配"}</span>
+        </div>
+        ${exp ? waveDetailHTML(w, idx) : ""}`;
+    }).join("");
+
+    return `<div class="roundgroup ${isOpen?"open":""}" data-round="${g.round}" data-teams="${tids.join(" ")}">
+      ${head}${isOpen?`<div class="rg-body">${body}</div>`:""}
+    </div>`;
+  }).join("");
+
+  /* ---- 轮次折叠 / 展开 ---- */
+  box.querySelectorAll("[data-rtoggle]").forEach(h=>{
+    h.onkeydown = e => {if(e.key==="Enter"||e.key===" "){e.preventDefault();h.click();}};
+    h.onclick = () => {
+      const rd = Number(h.dataset.rtoggle);
+      animateMatrixFold(h.parentElement, !state.openRound[rd], () => {state.openRound[rd] = !state.openRound[rd];renderWavesKeepScroll();});
+    };
+  });
+
+  /* ---- 波次行：点击展开详情 ---- */
+  box.querySelectorAll(".wrow").forEach(row=>{
+    row.onclick = () => {
+      const wid = row.dataset.wid;
+      state.openWave[wid] = !state.openWave[wid];
+      renderWavesKeepScroll();
+    };
+  });
+
+  if(CUSTOM_BOSSES_ENABLED){
+  /* ---- 详情内的编辑控件 ---- */
+  box.querySelectorAll("[data-round]").forEach(inp=>{
+    inp.onchange = () => {
+      const w = findWave(inp.dataset.round);
+      const rr = realRoundRange();
+      let v = Number(inp.value); if(isNaN(v)) v = w.round;
+      w.round = rr ? Math.max(rr.min, Math.min(rr.max, v)) : Math.max(1, v||1);
+      renderAll(); save();
+    };
+  });
+  box.querySelectorAll("[data-delwave]").forEach(b=>{
+    b.onclick = ev => {
+      ev.stopPropagation();
+      state.waves = state.waves.filter(w=>w.id!==b.dataset.delwave);
+      autoSplitWaves();
+      renderAll(); save();
+    };
+  });
+  box.querySelectorAll("[data-addenemy]").forEach(b=>{
+    b.onclick = ev => { ev.stopPropagation(); findWave(b.dataset.addenemy).enemies.push(blankEnemy()); renderAll(); save(); };
+  });
+  box.querySelectorAll(".eSlot").forEach(s=>{
+    const wid = s.dataset.wid, ei = s.dataset.ei;
+    if(wid==null || ei==null || ei==="") return;
+    s.addEventListener("dragover", e=>{ e.preventDefault(); s.classList.add("drop-on"); });
+    s.addEventListener("dragleave", ()=> s.classList.remove("drop-on"));
+    s.addEventListener("drop", e=>{
+      e.preventDefault(); e.stopPropagation(); s.classList.remove("drop-on");
+      const bid = e.dataTransfer.getData("text/bid");
+      const mxb = e.dataTransfer.getData("text/mxb");
+      const w = findWave(wid);
+      if(bid){
+        const m = MONSTERS.find(x=>x.id===bid);
+        if(m) w.enemies[Number(ei)] = mkMonster(m);
+        renderAll(); save();
+      }else if(mxb){
+        const st = MX_STAGES[state.stageId];
+        const b = st && (st.waves||[]).find(x=>String(x.id)===mxb);
+        if(b) w.enemies[Number(ei)] = mkBossFromStage(b);
+        renderAll(); save();
+      }
+    });
+    s.onclick = (ev) => {
+      if(ev.target.dataset.del!=null) return;
+      ev.stopPropagation();
+      const w = findWave(wid);
+      if(pickedBoss){
+        w.enemies[Number(ei)] = Object.assign({}, pickedBoss, {uid:nid()});
+        pickedBoss = null; renderAll(); save(); return;
+      }
+      if(w.enemies[Number(ei)] && w.enemies[Number(ei)].name){ w.enemies[Number(ei)] = blankEnemy(); renderAll(); save(); }
+    };
+    const del = s.querySelector("[data-del]");
+    if(del) del.onclick = ev => { ev.stopPropagation(); findWave(wid).enemies[Number(ei)] = blankEnemy(); renderAll(); save(); };
+  });
+
+  /* ---- 拖拽：波次排序 / 把敌人拖到某一行 ---- */
+  let dragWid = null;
+  box.querySelectorAll("[data-wgrip]").forEach(grip=>{
+    grip.addEventListener("dragstart", e=>{
+      const det = grip.closest(".wrow-detail");
+      dragWid = det ? det.dataset.wdetail : null;
+      e.stopPropagation();
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/wave", dragWid || "");
+    });
+    grip.addEventListener("dragend", ()=>{ dragWid = null; });
+  });
+  box.querySelectorAll(".wrow").forEach(row=>{
+    const wid = row.dataset.wid;
+    row.addEventListener("dragover", e=>{
+      const ty = Array.from(e.dataTransfer.types||[]);
+      if(dragWid || ty.indexOf("text/bid")>=0 || ty.indexOf("text/mxb")>=0){
+        e.preventDefault(); row.classList.add("drop-on");
+      }
+    });
+    row.addEventListener("dragleave", ()=> row.classList.remove("drop-on"));
+    row.addEventListener("drop", e=>{
+      row.classList.remove("drop-on");
+      const src = e.dataTransfer.getData("text/wave");
+      if(src){ e.preventDefault(); e.stopPropagation(); reorderWave(src, wid); return; }
+      const bid = e.dataTransfer.getData("text/bid");
+      const mxb = e.dataTransfer.getData("text/mxb");
+      if(!bid && !mxb) return;
+      e.preventDefault(); e.stopPropagation();
+      const w = findWave(wid);
+      let en = null;
+      if(bid){ const m = MONSTERS.find(x=>x.id===bid); if(m) en = mkMonster(m); }
+      else { const st = MX_STAGES[state.stageId]; const b = st && (st.waves||[]).find(x=>String(x.id)===mxb); if(b) en = mkBossFromStage(b); }
+      if(!en) return;
+      const empty = (w.enemies||[]).findIndex(x=>!x || !x.name);
+      if(empty>=0) w.enemies[empty] = en; else w.enemies.push(en);
+      state.openWave[w.id] = true;
+      renderAll(); save();
+    });
+  });
+  }
+  bindBossViews(box);
+}
+
+let BUFF_DIALOG=null;
+function buffIconURL(buff){return buff?(buff.iconUrl || (buff.icon?MATRIX_ASSET+buff.icon+".webp":"")):"";}
+function buffButtonHTML(buff){
+  const icon=buffIconURL(buff);
+  return `${icon?`<img src="${esc(icon)}" alt="" onerror="if(!resourceImageError(this))this.hidden=true">`:'<span class="buff-symbol">◇</span>'}<span>${esc(buff?buff.name:'未选择')}</span><small>⌄</small>`;
+}
+function openBuffDialog(tid){
+  const team=findTeam(tid);if(!team) return;
+  closeTeamPop();if(ROLE_DIALOG) closeRoleDialog();
+  BUFF_DIALOG={tid,focus:document.activeElement};
+  const choices=[{id:'',name:'不选择回路',desc:'仅记录队伍编排。'},...state.buffs];
+  const body=document.getElementById('buffDialogBody');
+  body.innerHTML=`<div class="buff-dialog-head"><div><span>MATRIX / AUGMENT</span><h2 id="buffDialogTitle">选择增幅回路</h2><p>${esc(team.name)}</p></div><button data-buff-close aria-label="关闭回路选择">✕</button></div><div class="buff-options" role="radiogroup" aria-label="增幅回路">${choices.map(buff=>`<button class="buff-option ${team.buff===buff.id?'selected':''}" data-buff-choice="${buff.id}" role="radio" aria-checked="${team.buff===buff.id}"><span class="buff-option-icon">${buffIconURL(buff)?`<img src="${esc(buffIconURL(buff))}" alt="" onerror="if(!resourceImageError(this))this.hidden=true">`:'◇'}</span><span class="buff-option-copy"><b>${esc(buff.name)}</b><span>${esc(fillDesc(buff))}</span></span><span class="buff-check">${team.buff===buff.id?'✓':''}</span></button>`).join('')}</div>`;
+  body.querySelector('[data-buff-close]').onclick=closeBuffDialog;
+  body.querySelectorAll('[data-buff-choice]').forEach(button=>button.onclick=()=>selectTeamBuff(tid,button.dataset.buffChoice));
+  document.getElementById('buffDlg').hidden=false;
+  body.querySelector('[aria-checked="true"]')?.focus({preventScroll:true});
+}
+function selectTeamBuff(tid,buffId){
+  const team=findTeam(tid);if(!team || buffId && !state.buffs.some(b=>b.id===buffId)) return;
+  team.buff=buffId;
+  const buff=state.buffs.find(b=>b.id===buffId),trigger=[...document.querySelectorAll('[data-buff]')].find(b=>b.dataset.buff===tid);
+  if(trigger){trigger.innerHTML=buffButtonHTML(buff);trigger.title=buff?fillDesc(buff):'选择增幅回路';}
+  save();renderTeamPop();closeBuffDialog();
+}
+function closeBuffDialog(){
+  const previous=BUFF_DIALOG;BUFF_DIALOG=null;document.getElementById('buffDlg').hidden=true;
+  if(previous && previous.focus && previous.focus.isConnected) previous.focus.focus({preventScroll:true});
+}
+function initBuffDialog(){
+  const root=document.getElementById('buffDlg');if(!root) return;
+  root.onclick=ev=>{if(ev.target===root) closeBuffDialog();};
+  root.onkeydown=ev=>{
+    if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();closeBuffDialog();return;}
+    if(ev.key==='Tab'){
+      const buttons=[...root.querySelectorAll('button')],first=buttons[0],last=buttons[buttons.length-1];
+      if(ev.shiftKey && document.activeElement===first){ev.preventDefault();last.focus();}
+      else if(!ev.shiftKey && document.activeElement===last){ev.preventDefault();first.focus();}
+    }
+  };
+}
+
+let BOSS_DIALOG=null;
+function bindBossViews(scope){
+  scope.querySelectorAll("[data-boss-wave],[data-boss-stage]").forEach(button=>{
+    const open=ev=>{ev.preventDefault();ev.stopPropagation();openBossDialog(button.dataset.bossWave,Number(button.dataset.bossIndex)||0,button.dataset.bossStage);};
+    button.onclick=open;
+    button.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" ") open(ev);};
+  });
+}
+function openBossDialog(wid,ei,stageBossId){
+  let wave=wid?findWave(wid):null,enemy=wave && wave.enemies[ei];
+  if(stageBossId){
+    const stage=MX_STAGES[state.stageId],boss=stage && stage.waves.find(b=>String(b.id)===stageBossId);
+    if(!boss) return;
+    wave=state.waves.find(w=>w.enemies.some(e=>String(e.wid)===stageBossId));
+    enemy=wave?wave.enemies.find(e=>String(e.wid)===stageBossId):mkBossFromStage(boss);
+  }
+  if(!enemy || !enemy.name) return;
+  closeTeamPop();if(ROLE_DIALOG) closeRoleDialog();
+  BOSS_DIALOG={focus:document.activeElement};
+  const sim=simOf(),left=wave?Math.max(0,sim.hp[wave.id]):null;
+  const info=[['属性抗性',(enemy.res||[]).join(' / ')||'均衡'],['敌人类型',enemy.chest?'奇藏 BOSS':'矩阵 BOSS'],['关卡等级',state.period.monsterLevel??'未提供']];
+  if(wave) info.push(['当前轮次','R'+wave.round],['本轮总血量',fmt(waveHp(wave))],['剩余血量',fmt(left)],['可提供积分',fmt(wavePotential(wave))+' 分'],['击破额外得分',fmt(killScoreOf(wave))+' 分']);
+  const image=enemy.icon?`<img src="${esc(enemy.icon)}" alt="${esc(enemy.name)}" onerror="if(!resourceImageError(this)){this.hidden=true;this.nextElementSibling.hidden=false}"><span hidden>暂无大图</span>`:'<span>暂无大图</span>';
+  document.getElementById('bossDialogBody').innerHTML=`<div class="boss-large-art">${image}</div><div class="boss-info"><span class="boss-eyebrow">MATRIX / BOSS</span><h2 id="bossDialogTitle">${esc(enemy.name)}</h2><p>${esc(state.period.label||'当期矩阵')}</p><dl>${info.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(String(value))}</dd></div>`).join('')}</dl></div>`;
+  document.getElementById('bossDlg').hidden=false;
+  document.getElementById('bossDialogClose').focus({preventScroll:true});
+}
+function closeBossDialog(){
+  const previous=BOSS_DIALOG;BOSS_DIALOG=null;
+  document.getElementById('bossDlg').hidden=true;
+  if(previous && previous.focus && previous.focus.isConnected) previous.focus.focus({preventScroll:true});
+}
+function initBossDialog(){
+  const root=document.getElementById('bossDlg');if(!root) return;
+  document.getElementById('bossDialogClose').onclick=closeBossDialog;
+  root.onclick=ev=>{if(ev.target===root) closeBossDialog();};
+  root.onkeydown=ev=>{
+    if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();closeBossDialog();}
+    if(ev.key==='Tab'){ev.preventDefault();document.getElementById('bossDialogClose').focus();}
+  };
+}
+
+function countKilled(sim){
+  let n=0;
+  state.waves.forEach(w=>{ if(sim.hp[w.id] <= 1e-6 && (w.enemies||[]).some(e=>e&&e.name)) n++; });
+  return n;
+}
+function eSlotHTML(w, e, ei){
+  if(!e || !e.name) return "";
+  const hp = enemyHpOf(w);
+  const sim = simOf();
+  let left = hp;
+  if((w.enemies||[]).filter(x=>x&&x.name).length===1) left = sim.hp[w.id];
+  const dead = left <= 1e-6;
+  return `<div class="eSlot filled" role="button" tabindex="0" data-boss-wave="${w.id}" data-boss-index="${ei}" data-wid="${w.id}" data-ei="${ei}" title="${esc(e.name)}${e.res&&e.res.length?(" · "+e.res.join("/")+"抗性"):" · 抗性均衡"}${e.chest?" · 积分 BOSS（倍率 ×"+scoreMultOf(w).toFixed(2)+"｜击破 +"+killScoreOf(w)+"）":""} · 血量 ${fmt(hp)}${dead?" · 已击破":" · 剩余 "+fmt(left)}">
+    ${avatarHTML(e.icon, e.name)}
+    ${e.res&&e.res.length?`<span class="res">${e.res.map(r=>`<s style="background:${EL_COLOR[r]||EL_COLOR.零}">${esc(r)}</s>`).join("")}</span>`:`<span class="res"><s style="background:var(--tag-neutral)">均衡</s></span>`}
+    ${e.chest?`<span class="sc">奇藏</span>`:""}
+    <div class="nm">${esc(e.name)}</div>
+  </div>`;
+}
+function findWave(id){ return state.waves.find(w=>w.id===id); }
+
+/* =========================================================================
+   渲染：汇总 + 血条总览
+   ========================================================================= */
+function renderSummary(){
+  const sim = simOf();
+  // 总积分 = 各队最终得分之和（估分 + 本队击破奇藏的固定分）
+  const total = sim.active.reduce((a,t)=>{
+    const r = sim.rec[t.id];
+    return a + (r ? r.score : Math.max(0,Number(t.score)||0));
+  },0);
+  const killed = countKilled(sim);
+  animNum($("#totalScore"), total);
+
+  /* 档位状态分三种：还没有估分（中性）/ 未达有效档（提醒）/ 已达档（正向）。
+     评审 P0：再也不要在没填分时显示「最低档 0，还差 0 分 + 绿色」，那会造成"结果已有效"的错觉。 */
+  const rules = state.period.scoreLevelRule || [];
+  const valid = rules.filter(r=> r.value!=null && r.value>0);   // 排除 0 这种占位档
+  const idx = TOP_TIER(total, rules);
+  const hintEl = $("#tierHint");
+  const hasScore = sim.active.some(t=> Math.max(0, Number(t.score)||0) > 0);
+  if(!hasScore){
+    hintEl.className = "tier";
+    hintEl.textContent = "填写队伍预估得分后查看推演";
+  }else if(idx < 0){
+    const first = valid[0];
+    hintEl.className = "tier warn";
+    hintEl.textContent = first
+      ? ("距第一档（" + fmt(first.value) + "）还差 " + fmt(Math.max(0, first.value - total)) + " 分")
+      : "尚未达到有效档位";
+  }else{
+    const next = valid.find(r=> r.value > total);
+    hintEl.className = "tier ok";
+    hintEl.textContent = next
+      ? ("已达 " + fmt(rules[idx].value) + " 档，距下一档还差 " + fmt(next.value - total) + " 分")
+      : ("已达最高档 " + fmt(rules[idx].value));
+  }
+
+  $("#sumStats").innerHTML = `
+    <div class="stat"><i>上场队伍</i><b>${sim.active.length}</b></div>
+    <div class="stat"><i>击破 BOSS</i><b>${killed}</b></div>
+    <div class="stat"><i>折算总伤害</i><b>${fmt(sim.totalDamage)}</b></div>
+  `;
+  const fat = fatigueMap();
+  $("#contrib").innerHTML = sim.active.map((t,i)=>{
+    const r = sim.rec[t.id];
+    const engaged = Object.keys(r.perWave||{}).length;   // 实际造成伤害的 BOSS 波次数
+    const cross = teamSwitchCount(r)>0;
+    const bad = t.members.some(m=>m && (fat[m.id]||0)>fatigueLimitOf(m.id));
+    return `<div class="row">
+      <span class="dot" style="background:${teamColor(i)}"></span>
+      <span class="nm">${esc(t.name)}${cross?` <span class="tag cross" style="padding:0 5px" title="自动统计：实际打到 ${engaged} 个 BOSS 波次，转火 ${teamSwitchCount(r)} 次，完全击破 ${r.cleared} 个">转火 ${teamSwitchCount(r)} 次</span>`:""}${bad?` <span class="tag bad" style="padding:0 5px">疲劳超限</span>`:""}</span>
+      <span class="sc">${fmt(r.score!=null?r.score:Math.max(0,Number(t.score)||0))}${r.chests>0?` <span class="tag" style="padding:0 5px;color:var(--ok)">奇藏 +${fmt(r.killScore)}</span>`:""}</span>
+    </div>`;
+  }).join("") || `<div class="empty-note" style="padding:10px">还没有上场的队伍</div>`;
+
+  renderHpOverview(sim);
+}
+function TOP_TIER(v, rules){
+  let idx = -1;
+  (rules||[]).forEach((r,i)=>{ if(r.value!=null && r.value>0 && v >= r.value) idx = i; });
+  return idx;
+}
+function renderHpOverview(sim){
+  const box = $("#hpOverview");
+  const groups = visibleWaveGroups(sim);
+  if(!groups.length){ box.innerHTML = `<div class="empty-note" style="padding:12px">还没有波次</div>`; return; }
+  const segColor = segColorOf;
+
+  const rows = groups.map(g=>{
+    const gw = g.waves.map(x=>x.w);
+    const hpTot = gw.reduce((a,w)=>a+waveHp(w),0);
+    const leftTot = gw.reduce((a,w)=>a+Math.max(0,sim.hp[w.id]),0);
+    const alive = gw.filter(w=>(w.enemies||[]).some(e=>e&&e.name));
+    const allDead = hpTot>0 && leftTot<=1e-6;
+    const segs = [];
+    gw.forEach(w=>(sim.seg[w.id]||[]).forEach(s=>{ if(s.damage>1e-6) segs.push(s); }));
+    const tids = roundTeamIds(layout(), sim, gw);
+    const st = !alive.length ? "空" : (allDead ? "击破" : (leftTot>=hpTot-1e-6 ? "未触及" : "残 "+Math.round(leftTot/hpTot*100)+"%"));
+    return `<div class="rrow ${allDead?"dead":""} ${(state.openRound||{})[g.round]?"on":""}" data-rjump="${g.round}" data-teams="${tids.join(" ")}" title="点击即在下方「波次次序」展开该轮次（高亮行=当前展开的轮次）">
+      <span class="rno">R${g.round}</span>
+      <span style="flex:0 0 38px;font-size:10.5px;color:var(--faint);font-weight:700">${alive.length} 波</span>
+      <span style="flex:1 1 auto;min-width:56px">
+        <span class="hp sm" data-teams="${tids.join(" ")}">
+          ${segs.map(s=>`<span class="seg" data-team="${s.team}" style="width:${Math.min(100,s.damage/hpTot*100)}%;background:${segColor(s.team)}" title="${esc((findTeam(s.team)||{}).name||"")}：造成 ${fmt(s.damage)}"></span>`).join("")}
+          ${allDead ? "" : `<span class="rem"></span>`}
+        </span>
+      </span>
+      <span style="flex:0 0 52px;text-align:right;font-size:10.5px;font-weight:700;color:${allDead?"var(--ok)":"var(--muted)"}">${st}</span>
+    </div>`;
+  }).join("");
+
+  const legend = sim.active.map((t,i)=>
+    `<i><span class="d" style="background:${teamColor(i)}"></span>${esc(t.name)}</i>`).join("");
+
+  box.innerHTML = `<div class="hpwrap">
+    ${rows}
+    <div class="hp-legend">${legend}<i><span class="d" style="background:repeating-linear-gradient(45deg,#dde1ea,#dde1ea 4px,#e9ecf4 4px,#e9ecf4 8px)"></span>剩余血量</i></div>
+    <div class="note" style="margin-top:6px">颜色对应队伍；悬停队伍高亮血条，点击轮次定位。</div>
+  </div>`;
+
+  box.querySelectorAll("[data-rjump]").forEach(el=>{
+    el.onclick = () => jumpToRound(Number(el.dataset.rjump));
+  });
+}
+
+
+/* =========================================================================
+   渲染：矩阵情报
+   ========================================================================= */
+function renderIntel(){
+  const box = $("#intel");
+  const p = state.period;
+  const tag = (p.season && p.season.tag) || "";
+  const ver = (p.season && p.season.start) ? (p.season.start + " – " + (p.season.end||"")) : "";
+  const rt = realTable();                            // 当期是否有实测血量表
+  const nR = rt ? ((rt.singularity && rt.singularity.rounds) || []).length : 0;
+
+  const periodIds = singularityStageIds();
+  const position = periodIds.indexOf(String(state.stageId));
+  const periodSel = `<div class="period-switcher">
+    <button class="period-step" id="periodNewer" aria-label="上一期（更新）" ${position<=0?"disabled":""}>‹</button>
+    <label class="period-select-wrap"><span>矩阵期次</span><select id="periodSel" aria-label="选择矩阵期次">
+    ${periodIds.map((k,i)=>{const v=MX_STAGES[k];return `<option value="${k}" ${String(state.stageId)===k?"selected":""}>第 ${esc(v.cycle?.id||k)} 期${i===0?" · 最新":""}</option>`;}).join("")}
+    </select></label>
+    <button class="period-step" id="periodOlder" aria-label="下一期（更早）" ${position<0||position>=periodIds.length-1?"disabled":""}>›</button>
+  </div>`;
+
+  const buffs = state.buffs.map(b=>`<div class="buffcard">
+      <img src="${b.iconUrl || (b.icon ? MATRIX_ASSET + b.icon + ".webp" : "")}" alt="" onerror="if(!resourceImageError(this))this.style.visibility='hidden'">
+      <div style="flex:1">
+        <div class="bt">${esc(b.name)}</div>
+        <div class="bd">${esc(fillDesc(b))}</div>
+      </div>
+    </div>`).join("") || `<div class="note">暂无回路数据，点上方「爬取当期矩阵」获取。</div>`;
+
+  const roleChips = state.roles.map(id=>{
+    const c = CH_INDEX[id];
+    const nm = c ? c.name : id;
+    return `<span class="chip" style="cursor:default;color:#b1650a;border-color:#f0dcb4;background:#fdf7ea" title="${esc((MX_STAGES[state.stageId]||{}).roles && ((MX_STAGES[state.stageId].roles||{})[id]||{}).desc || "")}">${esc(nm)}</span>`;
+  }).join("");
+  const spChip = state.special ? (()=>{
+    const c = CH_INDEX[state.special];
+    return `<span class="chip" style="cursor:default;color:#6d47d9;border-color:#ded5f7;background:#f3efff">危机特勤：${esc(c?c.name:state.special)}</span>`;
+  })() : "";
+
+  const tiers = (p.scoreLevelRule||[]).filter(r=>r.value>0).map(r=>{
+    const hit = (simOf().totalScore >= r.value);
+    return `<span class="${hit?"ok":""}">${fmt(r.value)}</span>`;
+  }).join("");
+
+  const tasks = [].concat(
+    (p.cycleTasks||[]).map(t=>({t:"循环", d:t.desc, pt:t.points})),
+    (p.challengeTasks||[]).map(t=>({t:"挑战", d:t.desc, pt:t.points}))
+  ).map(x=>`<div class="t"><b>${x.t}</b><span>${esc(x.d)}${x.pt?`（${x.pt}）`:""}</span></div>`).join("");
+
+  box.innerHTML = `
+    ${periodSel}
+    <div class="intel-row period-caption"><span class="period-badge">奇点扩张</span><span class="src" title="${esc(p.source||"—")}">${esc(tag)}${ver?(" · "+esc(ver)):""}</span></div>
+    <div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">增幅回路</div>${buffs}</div>
+    ${state.roles.length?`<div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">强化共鸣者</div><div class="chips" style="margin-top:0">${roleChips}${spChip}</div></div>`:""}
+    ${tiers?`<div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">积分档位</div><div class="tierlist">${tiers}</div></div>`:""}
+    ${tasks?`<details class="sec" style="border-top:1px dashed var(--border)"><summary style="padding-left:0">周期 / 挑战任务</summary><div class="tasklist" style="padding:0 0 6px">${tasks}</div></details>`:""}
+  `;
+
+  const sel = $("#periodSel");
+  if(sel) sel.onchange = () => switchMatrixPeriod(sel.value);
+  $("#periodNewer").onclick = () => {if(position>0) switchMatrixPeriod(periodIds[position-1]);};
+  $("#periodOlder").onclick = () => {if(position>=0 && position<periodIds.length-1) switchMatrixPeriod(periodIds[position+1]);};
+
+}
+
+/* =========================================================================
+   渲染：设置
+   ========================================================================= */
+function renderSettings(){
+  const set = (id,v)=>{ const el=$(id); if(el) el.value = v; };
+  set("#setFatigue", state.fatigueLimit);
+  const sel=$("#setSpecial");
+  if(sel){
+    const opts = Object.values((()=>{ const o={}; CHARACTERS.forEach(c=>o[c.id]=c); return o; })());
+    sel.innerHTML = `<option value="">— 无 —</option>` + opts.map(c=>`<option value="${c.id}" ${state.specialId===c.id?"selected":""}>${esc(characterLabel(c))}</option>`).join("");
+  }
+  const rt = realTable();
+  const head = $("#hpSourceHead"), body = $("#hpSourceBody"), note = $("#hpSourceNote");
+  if(rt){
+    if(head) head.textContent = "血量来源：玩家测量数据。";
+    if(body) body.textContent = "击破奇藏额外 +1,000 分。";
+    if(note) note.setAttribute("title", "数据来源：" + (MX_REAL_META.src || "—"));
+  }else{
+    if(head) head.textContent = "血量来源：游戏解包数据。";
+    if(body) body.textContent = "击破奇藏额外 +1,000 分。";
+    if(note) note.setAttribute("title", "数据来源：" + (MX_HPMETA.src || "—"));
+  }
+}
+
+/* =========================================================================
+   渲染：敌人库
+   ========================================================================= */
+function renderBossChips(){}
+function renderBossPool(){
+  const box=$("#bossPool"),stage=MX_STAGES[state.stageId];
+  if(!box) return;
+  const list=[...new Map(((stage&&stage.waves)||[]).map(b=>[b.name,b])).values()];
+  box.innerHTML=list.map(b=>{
+    const icon=b.iconUrl || (b.icon?MATRIX_ASSET+b.icon+".webp":"");
+    return `<button class="unit boss-catalog-item" data-boss-stage="${b.id}" title="查看 ${esc(b.name)} 大图和信息">${avatarHTML(icon,b.name)}<div class="nm">${esc(b.name)}</div></button>`;
+  }).join("") || '<div class="empty-note">暂无当期 BOSS 数据</div>';
+  bindBossViews(box);
+}
+
+/* =========================================================================
+   拖拽
+   ========================================================================= */
+let pickedChar=null, pickedBoss=null;
+let pendingCharSlot=null;
+function pendingCharTarget(){
+  if(!pendingCharSlot) return null;
+  const {tid,si}=pendingCharSlot,t=findTeam(tid);
+  if(!t || !Number.isInteger(si) || si<0 || si>=t.members.length || t.members[si]){pendingCharSlot=null;return null;}
+  return pendingCharSlot;
+}
+
+function trackGhost(e){
+  if(!ghost.classList.contains("on")) return;
+  const x = e.clientX, y = e.clientY;
+  if(x==null || y==null) return;
+  ghost.style.left = Math.max(2, x+14) + "px";
+  ghost.style.top  = Math.max(2, y+14) + "px";
+}
+document.addEventListener("drag", trackGhost, true);
+document.addEventListener("dragover", trackGhost, true);
+
+function bindUnitDrag(scope){
+  scope.querySelectorAll(".unit").forEach(el=>{
+    const cid = el.dataset.cid, bid = el.dataset.bid;
+    el.addEventListener("dragstart", e=>{
+      if(cid && !canSelectChar(cid)){e.preventDefault();return;}
+      e.dataTransfer.effectAllowed="copy";
+      if(cid){
+        e.dataTransfer.setData("text/cid",cid);
+        const c=CH_INDEX[cid];
+        ghost.innerHTML = `<img src="${charIcon(c)}" alt="">`;
+      } else {
+        e.dataTransfer.setData("text/bid",bid);
+        ghost.innerHTML = `<img src="assets/boss/${bid}.webp" alt="" onerror="this.remove()">`;
+      }
+      ghost.classList.add("on"); el.classList.add("dragging");
+    });
+    el.addEventListener("dragend", ()=>{ ghost.classList.remove("on"); el.classList.remove("dragging"); });
+    el.onclick = () => {
+      if(cid && !canSelectChar(cid)){toast("「"+CH_INDEX[cid].name+"」体力已用完");return;}
+      if(cid && pendingCharTarget()){
+        const {tid,si}=pendingCharSlot;placeChar(tid,si,cid);return;
+      }
+      if(cid){ pickedChar = cid; pickedBoss=null; toast("已选中「"+CH_INDEX[cid].name+"」，点队伍槽位放入"); }
+      else if(CUSTOM_BOSSES_ENABLED){ pickedBoss = mkMonster(MONSTERS.find(x=>x.id===bid)); pickedChar=null; toast("已选中敌人，点波次槽位放入"); }
+      markPicked();
+    };
+  });
+}
+
+/* =========================================================================
+   角色库抽屉（中屏 / 手机）：<1360px 时共鸣者库变成可开合的侧边抽屉
+   ========================================================================= */
+let poolOpen = false;
+function setPoolOpen(v){
+  poolOpen = !!v;
+  if(!poolOpen) pendingCharSlot=null;
+  const p = $("#colPool"), s = $("#poolScrim");
+  if(p) p.classList.toggle("open", poolOpen);
+  if(s) s.hidden = !poolOpen;
+  markPicked();
+}
+/* 选中角色的持续反馈：角色头像打勾，可放入的槽位亮起（跨栏也能看清当前选择） */
+function markPicked(){
+  const target=pendingCharTarget();
+  document.querySelectorAll("#pool .unit").forEach(u=> u.classList.toggle("sel", !!pickedChar && u.dataset.cid===pickedChar));
+  document.querySelectorAll("#teams .slot").forEach(s=> s.classList.toggle("armed", !!pickedChar || !!target && s.dataset.tid===target.tid && Number(s.dataset.si)===target.si));
+}
+
+/* =========================================================================
+   整体渲染 / 存档
+   ========================================================================= */
+function renderAll(){
+  invalidateSim();
+  renderPool(); renderTeams(); renderWavesKeepScroll(); renderSummary(); renderIntel(); renderAccountMatrix(); renderBossChips(); renderBossPool();
+  applyTeamHighlight(state.hoverTeam);          // 保持悬停高亮
+  markPicked();                                 // 重建 DOM 后恢复选中/就绪态
+  renderTeamPop();                              // 悬浮窗跟随刷新（未打开时自动跳过）
+  if(ROLE_DIALOG) renderRoleDialog();
+  roleSyncTeams(false).catch(()=>{});
+}
+function save(){
+  syncTeamNames();
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      mode:state.mode, stageId:state.stageId,
+      fatigueLimit:state.fatigueLimit, specialId:state.specialId,
+      teams: state.teams.map(t=>({id:t.id,name:t.name,members:t.members.map(m=>m?m.id:null),roleConfigs:serializeRoleConfigs(t),buff:t.buff,waves:t.waves,score:t.score,on:t.on})),
+      waves: state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid}))})),
+    }));
+  }catch(e){}
+}
+function load(options={}){
+  try{
+    const raw = localStorage.getItem(LS_KEY); if(!raw) return false;
+    const d = JSON.parse(raw);
+    if(!d || !Array.isArray(d.waves) || !Array.isArray(d.teams)) return false;
+    repairLoadedIds(d);
+    const valid = MX_STAGES[String(d.stageId)]?.mode === "singularity";
+    const sid = options.latest || !valid ? MX_CUR.singularity : d.stageId;
+    const resetPeriod = String(sid)!==String(d.stageId);
+    if(!applyStage(sid, {source:"内置数据 " + MX_VER, online:false, resetWaves:false})) return false;
+    state.fatigueLimit=d.fatigueLimit??1;
+    state.specialId=d.specialId||state.special||"";
+    state.teams=(d.teams||[]).map(t=>({id:t.id,name:t.name,members:(t.members||[null,null,null]).map(id=>id?CH_INDEX[id]||null:null),roleConfigs:cleanRoleConfigs(t.roleConfigs),buff:t.buff||"",waves:t.waves??1,score:Math.max(0,Number(t.score)||0),on:t.on!==false}));
+    syncTeamNames();
+    state.waves=(d.waves||[]).map(w=>({id:w.id,round:w.round||1,enemies:(w.enemies||[]).map(e=>({uid:nid(),wid:e.wid,name:e.name||"",icon:e.icon||"",res:e.res||[],chest:!!e.chest}))}));
+    if(resetPeriod) {state.waves=wavesFromStage(MX_STAGES[sid]);autoSplitWaves();}
+    const buffIds=new Set(state.buffs.map(b=>b.id));state.teams.forEach(t=>{if(t.buff&&!buffIds.has(t.buff))t.buff="";});
+    return state.teams.length>0;
+  }catch(e){ return false; }
+}
+
+/* =========================================================================
+   事件
+   ========================================================================= */
+function syncModeTabs(){
+  document.querySelectorAll("#tabs button").forEach(b=>{
+    b.classList.toggle("on", b.dataset.mode===state.mode);
+  });
+}
+function defaultStateFor(mode){
+  mode="singularity";
+  const sid = MX_CUR.singularity;
+  state = blankState();
+  if(sid && MX_STAGES[String(sid)]){
+    applyStage(sid, {source:"内置数据 " + MX_VER, online:false, resetWaves:true});
+  }else{
+    state.period = {id:"", name:"", mode:mode, label:"—（未载入矩阵数据）", cycle:{}, season:{}, source:"—"};
+  }
+  state.mode = mode;
+  const n = (state.period.teamLimit || 3);
+  state.teams = Array.from({length: Math.max(3, Math.min(n,3))}, (_,i)=>defaultTeam(i));
+  autoSplitWaves();                      // 默认即把波次均分给这几支队（boss rush）
+}
+
+$("#search").oninput = e => { state.filters.q=e.target.value; renderPool(); };
+
+$("#btnAddTeam").onclick = () => {
+  if(ROLE_DIALOG) closeRoleDialog();closeTeamPop();setPoolOpen(false);pickedChar=null;
+  state.teams.push(defaultTeam(state.teams.length));
+  autoSplitWaves();                       // 新增队伍后重新均分（boss rush 默认编排）
+  renderAll(); save();
+};
+if(CUSTOM_BOSSES_ENABLED && $("#btnAddWave")) $("#btnAddWave").onclick = () => {
+  const last = state.waves[state.waves.length-1];
+  const rd = last ? (Number(last.round)||1) : 1;
+  const nw = {id:nid(), round:rd, enemies:[blankEnemy(),blankEnemy()]};
+  state.waves.push(nw);
+  autoSplitWaves();
+  state.openRound[rd] = true;          // 新增的一波直接可见
+  state.openWave[nw.id] = true;
+  renderAll(); save();
+};
+$("#btnToggleRounds").onclick = () => {
+  const groups = visibleWaveGroups();
+  const anyOpen = groups.some(g=>state.openRound[g.round]);
+  groups.forEach(g=>{ state.openRound[g.round] = !anyOpen; });
+  renderWavesKeepScroll(); applyTeamHighlight(state.hoverTeam);
+};
+/* 把波次按「上场队伍」平均分配（boss rush 的默认编排：余数给靠前的队伍）。
+   这是工具自己维护的，界面上不再让玩家手调；待命队伍不吃波次。 */
+function autoSplitWaves(){
+  const act = state.teams.filter(t=>t.on);
+  const total = state.waves.length;
+  state.teams.forEach(t=>{ if(!t.on) t.waves = 0; });
+  if(!act.length || !total) return false;
+  const base = Math.floor(total/act.length), rem = total%act.length;
+  act.forEach((t,k)=>{ t.waves = base + (k<rem?1:0); });
+  return true;
+}
+$("#btnClear").onclick = () => {
+  if(!confirm("清空所有队伍与波次？")) return;
+  const mode = state.mode, sid = state.stageId, src = state.period.source, on = state.period.online;
+  state.teams = []; state.waves = [];
+  applyStage(sid, {source:src, online:on, resetWaves:false});
+  state.mode = mode;
+  renderAll(); save();
+};
+$("#btnCrawl").onclick = () => crawlCurrent($("#btnCrawl"));
+
+/* ---- 角色库抽屉 / 手机「更多」菜单 ---- */
+const _btnPoolOpen = $("#btnPoolOpen");
+if(_btnPoolOpen) _btnPoolOpen.onclick = () => {pendingCharSlot=null;setPoolOpen(true);};
+const _scrim = $("#poolScrim");
+if(_scrim) _scrim.onclick = () => setPoolOpen(false);
+const _btnMore = $("#btnMore");
+if(_btnMore) _btnMore.onclick = () => { const h=document.querySelector(".hbtns"); if(h) h.classList.toggle("more"); };
+const _btnKuro = $("#btnKuro");
+if(_btnKuro) _btnKuro.onclick = () => setKuroOpen(true);
+const _kuroClose = $("#kuroClose");
+if(_kuroClose) _kuroClose.onclick = () => setKuroOpen(false);
+const _kuroDlg = $("#kuroDlg");
+if(_kuroDlg) _kuroDlg.onclick = ev => { if(ev.target === _kuroDlg) setKuroOpen(false); };   // 点遮罩关闭
+const _btnPoster = $("#btnPoster");
+if(_btnPoster) _btnPoster.onclick = () => setPosterOpen(true);
+const _posterClose = $("#posterClose");
+if(_posterClose) _posterClose.onclick = () => setPosterOpen(false);
+const _posterDlg = $("#posterDlg");
+if(_posterDlg) _posterDlg.onclick = ev => { if(ev.target === _posterDlg) setPosterOpen(false); };
+document.addEventListener("keydown", ev=>{
+  if(ev.key!=="Escape") return;
+  const kd = $("#kuroDlg"), pd = $("#posterDlg");
+  if(kd && !kd.hidden){ setKuroOpen(false); return; }
+  if(pd && !pd.hidden){ setPosterOpen(false); return; }
+  if(poolOpen){ setPoolOpen(false); }
+});
+function exportPayload(){
+  syncTeamNames();
+  return {
+    mode:state.mode, stageId:state.stageId,
+    fatigueLimit:state.fatigueLimit,specialId:state.specialId,
+    teams:state.teams.map(t=>({id:t.id,name:t.name,members:t.members.map(m=>m?m.id:null),roleConfigs:serializeRoleConfigs(t),buff:t.buff,waves:t.waves,score:t.score,on:t.on})),
+    waves:state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid}))})),
+  };
+}
+$("#btnExport").onclick = () => {
+  const blob = new Blob([JSON.stringify(exportPayload(),null,2)], {type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="终焉矩阵排布.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+};
+$("#btnImport").onclick = () => {
+  const inp=document.createElement("input"); inp.type="file"; inp.accept=".json,application/json";
+  inp.onchange=()=>{
+    const f=inp.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        localStorage.setItem(LS_KEY, JSON.stringify(d));
+        load(); renderAll(); renderSettings(); syncModeTabs();
+        toast("配置已导入");
+      }catch(e){ toast("文件解析失败"); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+};
+function bindSetting(id, key, isNum){
+  const el = $(id); if(!el) return;
+  el.onchange = e => {
+    state[key] = isNum ? Number(e.target.value) : e.target.value;
+    if(key==="specialId"){ /* 疲劳上限随之变化 */ }
+    renderAll(); save();
+    if(key==="specialId") renderSettings();
+  };
+}
+bindSetting("#setFatigue","fatigueLimit",true); bindSetting("#setSpecial","specialId",false);
+
+
+/* =========================================================================
+   库街区（kurobbs）账号：token 登录 → 导入账号信息 + 「已拥有」角色
+   —— 纯前端直连 https://api.kurobbs.com（该域会按 Origin 回显 CORS 头，
+      保持请求在官方域名，不依赖第三方代理或额外的浏览器受限请求头）。
+   —— token / did 是账号凭据：单独存 localStorage，**不写进 state、不进「导出配置」**。
+   ========================================================================= */
+const KURO_API = "https://api.kurobbs.com";
+const KURO_LS  = "wuwa-kuro-account-v1";   // 非敏感：{user, ownedNames, hideUnowned, at}
+const KURO_TOK = "wuwa-kuro-token-v1";     // 凭据：{token, did, source}（仅本机）
+let KURO = {user:null, ownedNames:[], ownedIds:[], hideUnowned:false, at:0, raw:"", errs:[], paths:{}, probes:[]};
+let KURO_CRED = {token:"", did:"", source:""};
+let KURO_SOURCE = "android"; // 自动识别成功的平台，后续请求保持同一平台。
+let KURO_EDIT = false;
+let KURO_MSG = {kind:"", text:""};
+
+function kuroOwnedSet(){ return new Set(KURO.ownedNames||[]); }
+function kuroLoad(){
+  try{
+    const a = JSON.parse(localStorage.getItem(KURO_LS) || "null");
+    if(a){ KURO.user=a.user||null; KURO.ownedNames=a.ownedNames||[]; KURO.ownedIds=Array.isArray(a.ownedIds)?a.ownedIds.map(String):[]; KURO.hideUnowned=!!a.hideUnowned; KURO.at=a.at||0; }
+    const c = JSON.parse(localStorage.getItem(KURO_TOK) || "null");
+    if(c){
+      KURO_CRED.token=c.token||""; KURO_CRED.did=c.did||"";
+      KURO_CRED.source=["android","ios","h5"].includes(c.source) ? c.source : "";
+      KURO_SOURCE=KURO_CRED.source||"android";
+    }
+  }catch(e){}
+}
+function kuroSaveAcc(){
+  try{ localStorage.setItem(KURO_LS, JSON.stringify({user:KURO.user, ownedNames:KURO.ownedNames, ownedIds:KURO.ownedIds, hideUnowned:KURO.hideUnowned, at:KURO.at})); }catch(e){}
+}
+function kuroSaveCred(){
+  try{
+    if(KURO_CRED.token) localStorage.setItem(KURO_TOK, JSON.stringify({token:KURO_CRED.token, did:KURO_CRED.did||"", source:KURO_CRED.source||""}));
+    else localStorage.removeItem(KURO_TOK);
+  }catch(e){}
+}
+function kuroHeaders(json){
+  const h = {"source":KURO_SOURCE, "devCode":"matrix-browser"};
+  h["Content-Type"] = json ? "application/json" : "application/x-www-form-urlencoded; charset=utf-8";
+  if(KURO_CRED.token) h["token"] = KURO_CRED.token;
+  if(KURO_CRED.did)   h["did"]   = KURO_CRED.did;
+  return h;
+}
+async function kuroPostRaw(path, body, json, ms, detailHeaders){
+  const ctl = new AbortController(); const tm = setTimeout(()=>ctl.abort(), ms||15000);
+  try{
+    const headers=kuroHeaders(json);
+    if(path.startsWith("/aki/roleBox/akiBox/") && detailHeaders && detailHeaders["b-at"]){
+      headers["b-at"]=detailHeaders["b-at"];
+      if(detailHeaders.omitLoginToken===true) delete headers.token;
+    }
+    const r = await fetch(KURO_API + path, {
+      method:"POST", headers, credentials:"omit", redirect:"error", signal:ctl.signal,
+      body: json ? JSON.stringify(body) : new URLSearchParams(body).toString(),
+    });
+    const text = await r.text();
+    let j = null, parseErr = "";
+    try{ j = JSON.parse(text); }catch(e){ parseErr = "返回不是 JSON"; }
+    return {status:r.status, text:text, json:j, parseErr:parseErr};
+  } finally { clearTimeout(tm); }
+}
+/* 兼容多种返回封装：有的路径回 {code,data}、有的只回 {data}、有的直接回数据本身。
+   ⚠️ 历史坑：旧实现只认 `code===200`，于是**没有 code 字段的成功返回**会被误判为失败
+      （错误信息表现为「code undefined」），baseData / roleData 明明回来了却当成取不到。 */
+function kuroUnwrap(j){
+  j=kuroDeep(j);
+  if(j==null) return {ok:false, msg:"空返回"};
+  if(Array.isArray(j)) return {ok:true, data:kuroDeep(j)};
+  if(typeof j !== "object") return {ok:false, msg:"返回不是对象"};
+  const has = k => Object.prototype.hasOwnProperty.call(j, k);
+  if(Number(j.status)>=400) return {ok:false, code:Number(j.status), msg:j.message||j.error||"HTTP 错误"};
+  if(j.success===false) return {ok:false, code:j.code, msg:j.msg||"success=false"};
+  if(has("code")){
+    const c = Number(j.code);
+    if(c===200){
+      const data=kuroDeep(has("data") ? j.data : j);
+      return data==null ? {ok:false, code:c, msg:"接口返回空数据"} : {ok:true, data};
+    }
+    if(c===220) return {ok:false, code:220, msg:j.msg||"登录已过期"};
+    return {ok:false, code:j.code, msg:j.msg||""};
+  }
+  if(has("data")) return j.data==null ? {ok:false, msg:"接口返回空数据"} : {ok:true, data:kuroDeep(j.data)};
+  if(Object.keys(j).length>0) return {ok:true, data:kuroDeep(j)};   // 直接把数据当根对象回
+  return {ok:false, msg:"空对象返回"};
+}
+/* baseData / roleData 的 data 可能是「字符串化的 JSON」，递归解开 */
+function kuroDeep(v, depth){
+  depth = depth||0;
+  if(typeof v === "string"){
+    const s = v.trim();
+    if(depth<6 && s.length>2 && (s.charAt(0)==="{" || s.charAt(0)==="[")){
+      try{ return kuroDeep(JSON.parse(s), depth+1); }catch(e){ return v; }
+    }
+    return v;
+  }
+  return v;
+}
+/* queryOwnedRole 返回数字角色 ID 数组；roleData 则可能返回角色对象或字符串化 JSON。
+   角色 ID 只在名单数组及明确的角色字段中匹配，避免把等级、统计值误当成角色。 */
+function kuroCollectNames(v){
+  const known = {}, byId={}; CHARACTERS.forEach(c=>{ known[c.name] = c.id; byId[String(c.id)]=c.name; });
+  const hit = {};
+  const walk = (x, depth, ids)=>{
+    if(x==null || depth>8) return;
+    if(ids && (typeof x==="number" || typeof x==="string") && byId[String(x)]){
+      hit[byId[String(x)]]=true; return;
+    }
+    if(typeof x === "string"){
+      const s = x.trim();
+      if(known[s]) hit[s] = known[s];
+      else if(depth<6 && s.length>2 && (s.charAt(0)==="{"||s.charAt(0)==="[")){ try{ walk(JSON.parse(s), depth+1, ids); }catch(e){} }
+      return;
+    }
+    if(Array.isArray(x)){ x.forEach(y=>walk(y, depth+1, ids)); return; }
+    if(typeof x === "object"){
+      Object.keys(x).forEach(k=>walk(x[k], depth+1, /^(id|roleId|charId|characterId|roleList|ownedRoleIds|data)$/i.test(k)));
+    }
+  };
+  walk(v, 0, true);
+  return Object.keys(hit);
+}
+function kuroCollectIds(value){
+  const ids=new Set();
+  function visit(v,depth=0,eligible=true){
+    if(depth>8 || v==null)return;
+    if(typeof v==="string" && /^[\[{]/.test(v.trim())){try{visit(JSON.parse(v),depth+1,eligible);}catch(e){}return;}
+    if(eligible && (typeof v==="string"||typeof v==="number") && CH_INDEX[String(v)])ids.add(String(v));
+    else if(Array.isArray(v))v.forEach(x=>visit(x,depth+1,eligible));
+    else if(typeof v==="object")Object.entries(v).forEach(([k,x])=>visit(x,depth+1,/^(id|roleId|charId|characterId|roleList|ownedRoleIds|data)$/i.test(k)));
+  }
+  visit(value);return [...ids];
+}
+/* 官方已拥有角色与小组件接口优先；akiBox 仅作兼容回退。
+   参考：CM-Edelweiss/WutheringWavesUID/utils/api/{api,requests}.py。
+   10900 不能证明 token 失效；绑定账号列表成功后也可能遇到此错误。
+   不猜测 roleId=绑定记录 id，也不将 channelId=19 当作 serverId。 */
+const KURO_TAKE = [
+  {key:"base", label:"账号基础数据", paths:["/gamer/widget/game3/getData", "/aki/roleBox/akiBox/baseData"]},
+  {key:"role", label:"已拥有角色", paths:["/aki/calculator/queryOwnedRole", "/aki/roleBox/akiBox/roleData"]},
+];
+const KURO_FORM = true;
+function kuroRoleParams(role){
+  if(!role.roleId || !role.serverId) throw new Error("绑定账号缺少 roleId 或 serverId，请重新选择角色");
+  return {gameId:3, roleId:String(role.roleId), serverId:String(role.serverId)};
+}
+function kuroResponse(res){
+  if(res.status<200 || res.status>=300) return {ok:false, code:res.status, msg:"HTTP " + res.status};
+  if(res.parseErr) return {ok:false, msg:res.parseErr};
+  return kuroUnwrap(res.json);
+}
+function kuroSafeText(text){
+  let s=String(text||"");
+  try{
+    s=JSON.stringify(JSON.parse(s), (k,v)=>/^(token|did|devcode|accessToken|refreshToken|authorization|cookie)$/i.test(k) ? "[已隐藏]" : v);
+  }catch(e){}
+  [KURO_CRED.token,KURO_CRED.did].filter(Boolean).forEach(secret=>{ s=s.split(secret).join("[已隐藏]"); });
+  return s.replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,"[已隐藏]");
+}
+function kuroDataMatches(spec, path, data, role){
+  if(spec.key==="role"){
+    const list=Array.isArray(data) ? data : (data && data.roleList);
+    return Array.isArray(list) && list.every(x=>x!=null &&
+      (typeof x==="number" || typeof x==="string" || (typeof x==="object" && !Array.isArray(x) &&
+        ["id","roleId","roleName","name","charId"].some(k=>Object.prototype.hasOwnProperty.call(x,k)))));
+  }
+  if(!data || typeof data!=="object" || Array.isArray(data)) return false;
+  if(path==="/gamer/widget/game3/getData"){
+    return String(data.roleId)===String(role.roleId) && String(data.serverId)===String(role.serverId) &&
+      !!data.energyData && typeof data.energyData==="object";
+  }
+  return ["name","level","energy","worldLevel"].some(k=>Object.prototype.hasOwnProperty.call(data,k));
+}
+async function kuroFetchData(spec, role){
+  const probes = [], errs = [];
+  const params=kuroRoleParams(role);
+  for(const path of spec.paths){
+    const body=path==="/aki/calculator/queryOwnedRole"
+      ? {roleId:params.roleId,serverId:params.serverId}
+      : (path==="/gamer/widget/game3/getData" ? Object.assign({},params,{type:2,sizeType:1}) : params);
+    const tag=KURO_SOURCE + (path===spec.paths[0] ? "·首选接口" : "·兼容接口");
+    let res = null;
+    const label = path + " ［" + tag + "］";
+    try{ res = await kuroPostRaw(path, body, !KURO_FORM, 12000); }
+    catch(e){
+      const m = kuroSafeText(e && e.message ? e.message : e);
+      errs.push(label + " → " + m); probes.push({path:label, status:"fetch 失败", snip:m});
+      continue;
+    }
+    const snip = kuroSafeText(res.text).replace(/\s+/g," ").slice(0,180);
+    probes.push({path:label, status:"HTTP " + res.status, snip:snip});
+    const u = kuroResponse(res);
+    if(u.ok && kuroDataMatches(spec,path,u.data,role)) return {data:u.data, path, tag, probes, errs};
+    if(u.ok) u.msg="返回结构不符合所选账号的数据格式";
+    errs.push(label + " → " + (u.code!=null ? ("code " + u.code) : "无 code 字段")
+              + (u.msg ? ("：" + kuroSafeText(u.msg)) : ""));
+    if(Number(u.code)===220) break;
+  }
+  return {data:null, path:null, tag:null, probes, errs};
+}
+/* 只在绑定列表返回 220 时尝试下一平台；H5 的 220 不代表整个凭据失效。 */
+async function kuroLogin(){
+  const sources=KURO_CRED.source ? [KURO_CRED.source] : ["android","h5","ios"];
+  let rlU=null;
+  const authProbes=[];
+  for(const source of sources){
+    KURO_SOURCE=source;
+    const rlRaw=await kuroPostRaw("/gamer/role/list",{gameId:3},false,15000);
+    rlU=kuroResponse(rlRaw);
+    authProbes.push({path:"/gamer/role/list［"+source+"］",status:"HTTP "+rlRaw.status,snip:kuroSafeText(JSON.stringify({code:rlRaw.json&&rlRaw.json.code,msg:rlRaw.json&&rlRaw.json.msg}))});
+    if(rlU.ok || Number(rlU.code)!==220) break;
+  }
+  if(!rlU || !rlU.ok) throw new Error((rlU && Number(rlU.code)===220 ? "所选平台的 token 无效或已过期" : "绑定账号列表接口报错")
+                              + (rlU && rlU.msg ? ("（" + kuroSafeText(rlU.msg) + "）") : ""));
+  const rlData = rlU.data;
+  const roleList=Array.isArray(rlData) ? rlData : (rlData && (rlData.roleList||rlData.data));
+  if(!Array.isArray(roleList)) throw new Error("绑定账号列表返回结构异常");
+  const roles=roleList.filter(x=>x && Number(x.gameId)===3);
+  if(!roles.length) throw new Error("该账号没有绑定鸣潮角色");
+  const role = roles.find(x=>x.isDefault) || roles[0];
+
+  const B = await kuroFetchData(KURO_TAKE[1], role);
+  const A = await kuroFetchData(KURO_TAKE[0], role);
+  const base = A.data, rd = B.data;
+  const errs = [];
+  if(base==null) errs.push(KURO_TAKE[0].label + "取不到（" + A.errs.join("；") + "）");
+  if(rd==null) errs.push(KURO_TAKE[1].label + "取不到（" + B.errs.join("；") + "）");
+
+  KURO.user = {
+    nickname: (base && (base.name||base.roleName)) || role.roleName || "",
+    roleName: role.roleName || "",
+    roleId: role.roleId || "",
+    serverId: role.serverId || "",
+    userId: role.userId || "",
+    server: role.serverName || "",
+    level: (base && base.level!=null) ? base.level : (role.gameLevel!=null ? role.gameLevel : null),
+    worldLevel: (base && base.worldLevel!=null) ? base.worldLevel : null,
+    activeDays: (base && base.activeDays!=null) ? base.activeDays
+              : (role.activeDay!=null ? role.activeDay : null),
+    roleNum: (base && base.roleNum!=null) ? base.roleNum : (role.roleNum!=null?role.roleNum:null),
+    energy: (base && base.energy!=null) ? base.energy : (base && base.energyData && base.energyData.cur!=null ? base.energyData.cur : null),
+    maxEnergy: (base && base.maxEnergy!=null) ? base.maxEnergy : (base && base.energyData && base.energyData.total!=null ? base.energyData.total : null),
+    achievement: (role.achievementCount!=null) ? role.achievementCount : ((base&&base.achievementCount)||null),
+    phantomPercent: (role.phantomPercent!=null) ? role.phantomPercent : null,
+  };
+  KURO.ownedNames = rd ? kuroCollectNames(rd) : [];
+  KURO.ownedIds = rd ? kuroCollectIds(rd) : [];
+  roleResetAccount();
+  KURO.at = Date.now();
+  KURO.errs = errs;
+  KURO.paths = {base:(A.path ? (A.path + "［" + A.tag + "］") : null),
+                role:(B.path ? (B.path + "［" + B.tag + "］") : null)};
+  KURO.probes = authProbes.concat(B.probes||[],A.probes||[]);
+  KURO.raw = kuroSafeText(JSON.stringify({roleList:role, baseData:base, ownedRoles:rd}, null, 1));
+  kuroSaveAcc();
+  return {role, base, rd, errs};
+}
+function kuroLogout(){
+  KURO_CRED = {token:"", did:"", source:""}; KURO_SOURCE="android"; KURO_EDIT=false; kuroSaveCred();
+  KURO.user=null; KURO.ownedNames=[]; KURO.ownedIds=[]; KURO.at=0; KURO.raw=""; KURO.errs=[]; KURO.paths={}; KURO.probes=[];
+  kuroSaveAcc();
+  roleResetAccount();renderTeams();if(ROLE_DIALOG) renderRoleDialog();
+}
+/* ---- 对话框 ---- */
+function renderKuroDlg(){
+  const box = $("#kuroBody"); if(!box) return;
+  const logged = !!KURO_CRED.token && !KURO_EDIT;
+  const own = KURO.ownedNames||[];
+  const P = [];
+  const hd = $("#kuroHead"); if(hd) hd.textContent = logged ? ("已登录" + ((KURO.user&&KURO.user.nickname)?(" · "+KURO.user.nickname):"")) : "";
+  if(!logged){
+    P.push(`<div class="kmut">填入从<b>库街区</b>取到的 <b>token</b>（必填）与 <b>did</b>（选填）。凭据保存在本机浏览器，仅用于请求库街区官方接口，不发送给第三方，也不会写进导出配置。</div>`);
+    P.push(`<div class="kwrap"><label>token（库街区凭据）</label><textarea id="kuroTok" placeholder="粘贴 token…">${esc(KURO_CRED.token)}</textarea></div>`);
+    P.push(`<div class="kwrap"><label>did（设备号，选填）</label><input id="kuroDid" value="${esc(KURO_CRED.did)}" placeholder="可选"></div>`);
+    P.push(`<div class="kwrap"><label>凭据来源</label><select class="field" id="kuroSource">${[["","自动识别"],["android","Android App"],["ios","iOS App"],["h5","网页 / H5"]].map(([v,n])=>`<option value="${v}" ${KURO_CRED.source===v?"selected":""}>${n}</option>`).join("")}</select></div>`);
+    P.push(`<details class="sec" style="border:1px solid var(--border);border-radius:var(--rc)">
+      <summary style="padding:9px 12px">怎么获取 token / did？（重要：取对页面）</summary>
+      <div class="kmut" style="padding:0 12px 11px">
+        1. 用浏览器登录 <a href="https://www.kurobbs.com/" target="_blank" rel="noopener">库街区</a>；<br>
+        2. 进入鸣潮资料或养成计算器页面，确认自己的绑定角色能正常显示；<br>
+        3. 按 <b>F12</b> → <b>网络 / Network</b> → 刷新该页面；<br>
+        4. 从 <code>api.kurobbs.com</code> 的同一条成功请求中复制 token，以及存在时的 did；<br>
+        5. 凭据来源保留自动识别，或按该请求的 source 选择 Android、iOS、H5。仅在对应平台确认登录失效后重新获取凭据。仅读取你自己的账号数据。
+      </div></details>`);
+    P.push(`<div class="krow"><button class="btn primary" id="kuroGo">登录并导入</button><span class="kwarn">⚠ token 等同账号凭据，请勿分享给他人。</span></div>`);
+  }else{
+    const u = KURO.user||{};
+    const rows = [["昵称", u.nickname||u.roleName||"—"], ["UID（特征码）", u.roleId||"—"], ["区服", u.server||"—"]];
+    if(u.level!=null) rows.push(["联觉等级", u.level]);
+    if(u.worldLevel!=null) rows.push(["索拉等级", u.worldLevel]);
+    if(u.activeDays!=null) rows.push(["活跃天数", u.activeDays]);
+    if(u.roleNum!=null) rows.push(["角色数", u.roleNum]);
+    if(u.achievement!=null) rows.push(["成就数", u.achievement]);
+    if(u.energy!=null) rows.push(["结晶波片", u.energy + (u.maxEnergy!=null?(" / "+u.maxEnergy):"")]);
+    P.push(`<div class="kcard">${rows.map(r=>`<span class="k">${esc(r[0])}</span><span class="v">${esc(String(r[1]===undefined?"—":r[1]))}</span>`).join("")}</div>`);
+    P.push(`<div class="krow"><span class="kok">已匹配到 ${own.length} 位本地共鸣者</span><span class="kmut">（按角色 ID / 名称匹配）</span><div style="flex:1"></div><button class="btn ghost" id="kuroReload">重新拉取</button><button class="btn ghost" id="kuroEdit">更换凭据</button><button class="btn ghost" id="kuroOut">退出并清除 token</button></div>`);
+    P.push(`<div class="krow"><button class="chip own ${KURO.hideUnowned?"on":""}" id="kuroOnly">仅显示已拥有</button><span class="kmut">不勾选时，未拥有的共鸣者会变暗但仍在列表里。</span></div>`);
+    if(own.length) P.push(`<div class="kmut">已拥有：${esc(own.join("、"))}</div>`);
+    else P.push(`<div class="kwarn">尚未匹配到本地共鸣者。请查看下面的接口诊断；如果角色名单已返回，但存在未收录的角色，请更新本地角色数据。10900 表示该接口未能查询角色，不能单凭此错误认定 token 失效。</div>`);
+    if(KURO.errs && KURO.errs.length) P.push(`<div class="kwarn">${KURO.errs.map(esc).join("<br>")}</div>`);
+    if(KURO.paths && (KURO.paths.role || KURO.paths.base)) P.push(`<div class="kmut">命中路径：基础数据 ${esc(KURO.paths.base||"—")} ／ 角色列表 ${esc(KURO.paths.role||"—")}</div>`);
+    if(KURO.probes && KURO.probes.length){
+      const txt = KURO.probes.map(pr=>pr.path + "  →  " + pr.status + "\n  " + (pr.snip ? pr.snip : "（空返回）")).join("\n\n");
+      P.push(`<details class="sec" style="border:1px solid var(--border);border-radius:var(--rc)"><summary style="padding:9px 12px">接口探测明细（含返回原文片段，可整段复制）</summary><pre class="kraw">${esc(txt.slice(0,4000))}</pre></details>`);
+    }
+    if(KURO.raw) P.push(`<details class="sec" style="border:1px solid var(--border);border-radius:var(--rc)"><summary style="padding:9px 12px">原始返回（供排查）</summary><pre class="kraw" id="kuroRaw">${esc(KURO.raw.slice(0,20000))}</pre></details>`);
+  }
+  if(KURO_MSG.text) P.push(`<div class="${KURO_MSG.kind==="ok"?"kok":"kwarn"}">${esc(KURO_MSG.text)}</div>`);
+  box.innerHTML = P.join("");
+
+  const go = $("#kuroGo");
+  if(go) go.onclick = async ()=>{
+    KURO_CRED.token = (($("#kuroTok")||{}).value||"").trim();
+    KURO_CRED.did   = (($("#kuroDid")||{}).value||"").trim();
+    KURO_CRED.source= (($("#kuroSource")||{}).value||"").trim();
+    if(!KURO_CRED.token){ KURO_MSG={kind:"warn", text:"请先填入 token"}; renderKuroDlg(); return; }
+    kuroSaveCred();
+    go.classList.add("busy"); go.textContent = "导入中…";
+    try{
+      const r = await kuroLogin();
+      KURO_EDIT=false;
+      KURO_MSG = {kind:"ok", text:"导入成功" + (r.errs.length?("（部分失败："+r.errs.join("；")+"）"):"")};
+      renderElChips(); renderAll();readAccountMatrix().catch(()=>{});
+    }catch(e){ KURO_EDIT=true; KURO_MSG = {kind:"warn", text:"导入失败："+kuroSafeText(e&&e.message?e.message:e)}; }
+    renderKuroDlg();
+  };
+  const out = $("#kuroOut");
+  if(out) out.onclick = ()=>{ kuroLogout(); KURO_MSG={kind:"", text:"已清除本机保存的 token 与账号数据"}; renderElChips(); renderPool(); renderKuroDlg(); };
+  const edit=$("#kuroEdit");
+  if(edit) edit.onclick=()=>{ KURO_EDIT=true; KURO_MSG={kind:"",text:""}; renderKuroDlg(); };
+  const rl2 = $("#kuroReload");
+  if(rl2) rl2.onclick = async ()=>{
+    rl2.classList.add("busy"); rl2.textContent = "拉取中…";
+    try{ const r = await kuroLogin(); KURO_MSG={kind:"ok", text:"已刷新"+(r.errs.length?("（部分失败："+r.errs.join("；")+"）"):"")}; }
+    catch(e){ KURO_MSG={kind:"warn", text:"刷新失败："+kuroSafeText(e&&e.message?e.message:e)}; }
+    renderElChips(); renderAll(); renderKuroDlg();if(KURO.user && KURO_CRED.token)readAccountMatrix().catch(()=>{});
+  };
+  const only = $("#kuroOnly");
+  if(only) only.onclick = ()=>{ KURO.hideUnowned = !KURO.hideUnowned; kuroSaveAcc(); renderElChips(); renderPool(); renderKuroDlg(); };
+}
+function setKuroOpen(v){
+  const d = $("#kuroDlg"); if(!d) return;
+  d.hidden = !v;
+  if(v){ KURO_MSG={kind:"", text:""}; renderKuroDlg(); const t=$("#kuroTok"); if(t&&t.focus) t.focus(); }
+}
+
+/* =========================================================================
+   排布方案 → 长图（canvas 绘制 + PNG 下载）
+   —— 只读取现有 state 与推演结果（simOf / layout / waveGroups / wavePotential …），不动业务逻辑。
+   默认使用离线内嵌角色头像与武器图标，file:// 下也可导出。
+   ========================================================================= */
+const POSTER_W = 1080;
+const PC = {
+  bg:"#eef1f6", panel:"#ffffff", border:"#dde3ee", border2:"#cbd4e3",
+  text:"#172033", muted:"#475569", faint:"#64748b",
+  accent:"#4a63e7", accentSoft:"#e8ecff",
+  em1:"#141d33", em2:"#0f172a", onEm:"#f8fafc", onEm2:"#c8d2e2",
+  ok:"#12a37a", warn:"#d98a00", bad:"#dc3f5c", trough:"#e6eaf2", idle:"#64748b",
+};
+const POSTER_FONT = '"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+
+/* ---------- 画布小工具 ---------- */
+function pRR(g,x,y,w,h,r){
+  r = Math.max(0, Math.min(r, w/2, h/2));
+  g.beginPath();
+  g.moveTo(x+r,y); g.lineTo(x+w-r,y); g.quadraticCurveTo(x+w,y,x+w,y+r);
+  g.lineTo(x+w,y+h-r); g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
+  g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+}
+function pFillRR(g,x,y,w,h,r,fill){ pRR(g,x,y,w,h,r); g.fillStyle=fill; g.fill(); }
+function pStrokeRR(g,x,y,w,h,r,stroke,lw){ pRR(g,x,y,w,h,r); g.strokeStyle=stroke; g.lineWidth=lw||1; g.stroke(); }
+function pFont(g,size,weight){ g.font = (weight||400) + " " + size + "px " + POSTER_FONT; }
+function pClipText(g,txt,maxW){
+  let s = String(txt==null?"":txt);
+  if(g.measureText(s).width <= maxW) return s;
+  while(s.length>1 && g.measureText(s+"…").width > maxW) s = s.slice(0,-1);
+  return s + "…";
+}
+function pText(g,txt,x,y,o){
+  o = o||{};
+  pFont(g, o.size||15, o.weight||400);
+  g.fillStyle = o.fill||PC.text;
+  g.textAlign = o.align||"left";
+  g.textBaseline = o.base||"alphabetic";
+  const s = o.max ? pClipText(g,txt,o.max) : String(txt==null?"":txt);
+  g.fillText(s, x, y);
+  return g.measureText(s).width;
+}
+function pShade(hex, amt){
+  let h = String(hex||"#888888").replace("#","");
+  if(h.length===3) h = h.split("").map(c=>c+c).join("");
+  const n = parseInt(h,16) || 0x888888;
+  const f = v => Math.max(0, Math.min(255, v+amt));
+  return "#" + [f((n>>16)&255), f((n>>8)&255), f(n&255)].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+function pHsl(teamId){
+  const c = segColorOf(teamId);
+  return c.indexOf("var(")===0 ? PC.idle : c;
+}
+function pLoadImg(src){
+  return new Promise(res=>{
+    const im = new Image();
+    im.onload = ()=>res(im);
+    im.onerror = ()=>res(null);
+    im.src = src;
+  });
+}
+async function pLoadTeamImgs(){
+  const sources = new Map();
+  state.teams.filter(t=>t.on).forEach(t=>t.members.forEach(m=>{
+    if(!m) return;
+    const embedded = typeof CHARACTER_PORTRAITS!=="undefined" ? CHARACTER_PORTRAITS[m.id] : null;
+    // data URL 在 file:// 下也不会污染画布；未打包的角色保留矢量头像。
+    sources.set(charIcon(m), embedded || (location.protocol!=="file:" ? charIcon(m) : null));
+    const cfg=roleConfigOf(t,m.id);
+    const weaponIcon=typeof WEAPON_PORTRAITS!=="undefined" ? WEAPON_PORTRAITS[cfg.weapon.id] : null;
+    if(weaponIcon) sources.set("weapon:"+cfg.weapon.id,weaponIcon);
+  }));
+  const map = {};
+  await Promise.all([...sources].map(async ([key,src])=>{ map[key] = src ? await pLoadImg(src) : null; }));
+  return map;
+}
+function pAvatar(g,x,y,d,m,imgs,useArt){
+  const cx = x+d/2, cy = y+d/2, r = d/2;
+  const el = (m && EL_COLOR[m.element]) || EL_COLOR.零;
+  g.save();
+  g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.closePath(); g.clip();
+  const im = useArt && m ? imgs[charIcon(m)] : null;
+  if(im) g.drawImage(im, x, y, d, d);
+  else{
+    const grd = g.createLinearGradient(x,y,x+d,y+d);
+    grd.addColorStop(0, pShade(el,22)); grd.addColorStop(1, pShade(el,-34));
+    g.fillStyle = grd; g.fillRect(x,y,d,d);
+    const ch = m ? String(m.name||"?").replace(/[·\s]/g,"").charAt(0) : "?";
+    pText(g, ch, cx, cy+1, {size:d*0.44, weight:800, fill:"#fff", align:"center", base:"middle"});
+  }
+  g.restore();
+  g.beginPath(); g.arc(cx,cy,r-1.5,0,Math.PI*2); g.strokeStyle = el; g.lineWidth = 3; g.stroke();
+}
+
+function pPosterBadge(g,x,y,value,color){
+  g.save();g.beginPath();g.arc(x,y,10,0,Math.PI*2);g.fillStyle=color;g.fill();
+  g.strokeStyle="#fff";g.lineWidth=2;g.stroke();
+  pText(g,String(value),x,y+1,{size:12,weight:800,fill:"#fff",align:"center",base:"middle"});g.restore();
+}
+function pPosterDps(g,value,x,y){
+  g.save();g.font="italic 800 30px Georgia,serif";g.textAlign="right";g.textBaseline="alphabetic";
+  const ink=g.createLinearGradient(x-180,y-30,x,y);ink.addColorStop(0,"#315fd2");ink.addColorStop(1,"#8d58ba");
+  g.fillStyle=ink;g.fillText(value,x,y);g.restore();
+}
+/* ---------- 主绘制：所有内容一次画进一张长图 ---------- */
+function pDrawInto(cv, o, imgs, useArt){
+  const S = o.scale || 1;
+  const PAD = 44, W = POSTER_W;
+  const GAP = 18, H_HEAD = 104, H_SUM = 172, H_TEAM = 224, H_RT = 38, H_RR = 50, H_WT = 34, H_WR = 30, H_FOOT = 54;
+
+  const sim = simOf(), L = layout();
+  const rows = L.rows;                       // 上场队伍（含计划覆盖区间）
+  const groups = visibleWaveGroups(sim);
+  const visibleWaves = groups.flatMap(g=>g.waves);
+  const wcols = 2, wrows = Math.max(1, Math.ceil(visibleWaves.length / wcols));
+
+  const H = PAD + H_HEAD + GAP + H_SUM + GAP
+          + (rows.length ? rows.length*H_TEAM : 60) + GAP
+          + H_RT + groups.length*H_RR + GAP
+          + H_WT + wrows*H_WR + GAP + H_FOOT + PAD;
+
+  cv.width = Math.round(W*S); cv.height = Math.round(H*S);
+  const g = cv.getContext("2d");
+  g.setTransform(S,0,0,S,0,0);
+  g.fillStyle = PC.bg; g.fillRect(0,0,W,H);
+  /* 顶部一层很淡的品牌色渐变，增加层次 */
+  const wash = g.createLinearGradient(0,0,0,420);
+  wash.addColorStop(0,"rgba(74,99,231,.10)"); wash.addColorStop(1,"rgba(74,99,231,0)");
+  g.fillStyle = wash; g.fillRect(0,0,W,420);
+
+  let y = PAD;
+
+  /* ---- 页头 ---- */
+  pText(g, "终焉矩阵 · 队伍排布", PAD, y+34, {size:30, weight:800, fill:PC.text});
+  const per = state.period || {};
+  const sub = [per.label, (per.cycle&&per.cycle.name), (per.season&&per.season.name)].filter(Boolean).join(" · ");
+  pText(g, sub || "—", PAD, y+62, {size:14, fill:PC.faint, max:W-2*PAD-260});
+  pText(g, "奇点扩张", PAD, y+84, {size:13, fill:PC.accent, weight:700});
+  const now = new Date();
+  pText(g, "生成于 " + now.toLocaleString("zh-CN",{hour12:false}), W-PAD, y+34, {size:13, fill:PC.faint, align:"right"});
+  pText(g, visibleWaves.length + " 波 · " + rows.length + " 支上场队伍", W-PAD, y+58, {size:13, fill:PC.faint, align:"right"});
+  y += H_HEAD;
+
+  /* ---- 积分摘要（深色带）---- */
+  y += GAP;
+  const sg = g.createLinearGradient(PAD,y,W-PAD,y+H_SUM);
+  sg.addColorStop(0, PC.em1); sg.addColorStop(1, PC.em2);
+  pFillRR(g, PAD, y, W-2*PAD, H_SUM, 18, sg);
+  const rg = g.createRadialGradient(W-PAD-40, y+10, 10, W-PAD-40, y+10, 420);
+  rg.addColorStop(0,"rgba(74,99,231,.42)"); rg.addColorStop(1,"rgba(74,99,231,0)");
+  g.save(); pRR(g,PAD,y,W-2*PAD,H_SUM,18); g.clip(); g.fillStyle=rg; g.fillRect(PAD,y,W-2*PAD,H_SUM); g.restore();
+
+  pText(g, fmt(sim.totalScore), PAD+26, y+62, {size:46, weight:800, fill:"#ffffff"});
+  const tw = pText(g, "预估总积分", PAD+26, y+84, {size:13, fill:PC.onEm2});
+  const tierTxt = ($("#tierHint")||{}).textContent || "";
+  if(tierTxt){
+    pFont(g,12,700); const bw = g.measureText(tierTxt).width + 22;
+    const reached = /已达/.test(tierTxt);
+    pFillRR(g, PAD+26+tw+14, y+72, bw, 24, 12, reached ? "rgba(52,199,123,.24)" : "rgba(217,138,0,.26)");
+    pText(g, tierTxt, PAD+26+tw+14+bw/2, y+82, {size:12, weight:700, align:"center", base:"middle",
+      fill: reached ? "#8ff0bd" : "#ffd08a"});
+  }
+  const stats = [
+    ["上场队伍", String(sim.active.length)],
+    ["击破 BOSS", String(countKilled(sim))],
+    ["折算总伤害", fmt(sim.totalDamage)],
+  ];
+  const cw = (W-2*PAD-52-(stats.length-1)*12)/stats.length;
+  stats.forEach((s,i)=>{
+    const x = PAD+26 + i*(cw+12);
+    pFillRR(g, x, y+100, cw, 52, 10, "rgba(255,255,255,.09)");
+    pStrokeRR(g, x, y+100, cw, 52, 10, "rgba(255,255,255,.16)");
+    pText(g, s[0], x+12, y+120, {size:11.5, fill:PC.onEm2});
+    pText(g, s[1], x+12, y+143, {size:19, weight:800, fill:"#ffffff", max:cw-20});
+  });
+  y += H_SUM;
+
+  /* ---- 队伍卡 ---- */
+  y += GAP;
+  if(!rows.length){
+    pFillRR(g, PAD, y, W-2*PAD, 60, 12, PC.panel);
+    pText(g, "还没有上场的队伍", W/2, y+36, {size:15, fill:PC.faint, align:"center"});
+    y += 60;
+  }
+  rows.forEach((row, i)=>{
+    const t = row.team, col = teamColor(i);
+    const r = sim.rec[t.id] || {};
+    pFillRR(g, PAD, y, W-2*PAD, H_TEAM-14, 14, PC.panel);
+    pStrokeRR(g, PAD, y, W-2*PAD, H_TEAM-14, 14, PC.border);
+    /* 左侧队色条 */
+    g.save(); pRR(g,PAD,y,W-2*PAD,H_TEAM-14,14); g.clip();
+    g.fillStyle = col; g.fillRect(PAD, y, 6, H_TEAM-14); g.restore();
+
+    const bx = PAD+22;
+    pFillRR(g, bx, y+16, 62, 24, 12, col);
+    pText(g, "第 " + (i+1) + " 顺位", bx+31, y+28, {size:11.5, weight:700, fill:"#fff", align:"center", base:"middle"});
+    pText(g, t.name || "—", bx, y+60, {size:19, weight:800, max:250});
+    const buff = state.buffs.find(b=>b.id===t.buff);
+    pText(g, "增幅回路 " + (buff ? buff.name : "未选择"), bx, y+82, {size:12.5, fill:PC.faint, max:250});
+    const engaged = Object.keys(r.perWave||{}).length;
+    pText(g, (teamSwitchCount(r)>0 ? "转火 " + teamSwitchCount(r) + " 次 · " : "") + "击破 " + (r.cleared||0) + " 波",
+          bx, y+104, {size:12, fill: r.shortfall>0 ? PC.bad : PC.muted, max:250});
+
+    /* 3 个角色 */
+    const ax = PAD+300, d = 58;
+    t.members.forEach((m,si)=>{
+      const x = ax + si*(d+16);
+      if(m){
+        pAvatar(g, x, y+22, d, m, imgs, useArt);
+        const cfg=roleConfigOf(t,m.id);
+        pPosterBadge(g,x+d-2,y+24,cfg.chain??"—",PC.accent);
+        pText(g, characterLabel(m), x+d/2, y+22+d+18, {size:12.5, weight:600, align:"center", max:d+18});
+        const wi=imgs["weapon:"+cfg.weapon.id],wd=36,wx=x+(d-wd)/2,wy=y+111;
+        pFillRR(g,wx,wy,wd,wd,8,"#eef1fa");
+        if(wi && useArt) g.drawImage(wi,wx,wy,wd,wd);
+        else pText(g,"◇",wx+wd/2,wy+24,{size:23,fill:PC.faint,align:"center"});
+        if(cfg.weapon.id) pPosterBadge(g,wx+wd-1,wy+2,cfg.refinement??"—","#9b7539");
+        pText(g,cfg.weapon.name||"未选择武器",x+d/2,y+167,{size:10.5,fill:PC.muted,align:"center",max:d+18});
+        const echoInfo=(cfg.detail.echoes||[]).length ? "声骸 "+cfg.detail.echoes.map(e=>e.cost??"?").join("") : cfg.detail.id?"未装备声骸":"声骸未读取";
+        pText(g,echoInfo,x+d/2,y+187,{size:9.5,fill:PC.faint,align:"center",max:d+18});
+        const echoRating=echoScoreRole(m,cfg.detail);
+        if(echoRating.ready) pText(g,(echoRating.profile.generic?"通用 ":"评分 ")+echoRating.total.toFixed(1)+" "+echoRating.grade,x+d/2,y+204,{size:9.5,fill:PC.accent,align:"center",max:d+18});
+      }else{
+        g.beginPath(); g.arc(x+d/2, y+22+d/2, d/2-1.5, 0, Math.PI*2);
+        g.fillStyle = "#eef1f7"; g.fill();
+        g.setLineDash([4,4]); g.strokeStyle = PC.border2; g.lineWidth = 1.5; g.stroke(); g.setLineDash([]);
+        pText(g, "空位", x+d/2, y+22+d/2+1, {size:12, fill:PC.faint, align:"center", base:"middle"});
+      }
+    });
+
+    /* 右侧得分 */
+    const rx = W-PAD-24;
+    pText(g, "最终估计得分", rx, y+66, {size:11.5, fill:PC.faint, align:"right"});
+    pText(g, fmt(r.score||0) + " 分", rx, y+100, {size:24, weight:800, align:"right", fill:PC.accent});
+    pText(g,"120 秒平均 DPS",rx,y+150,{size:11,fill:PC.faint,align:"right"});
+    pPosterDps(g,roleDps(r.damage)+" w/s",rx,y+184);
+    y += H_TEAM;
+  });
+
+  /* ---- 按轮次的 BOSS 血条推演 ---- */
+  y += GAP;
+  pText(g, "BOSS 血条推演（按轮次）", PAD, y+24, {size:16, weight:800});
+  pText(g, "血条按队伍色分段 · 灰底为剩余血量", W-PAD, y+23, {size:11.5, fill:PC.faint, align:"right"});
+  y += H_RT;
+  const barX = PAD+150, barW = W-2*PAD-150-190;
+  groups.forEach(gp=>{
+    const gw = gp.waves.map(x=>x.w);
+    const hpTot = gw.reduce((a,w)=>a+waveHp(w),0);
+    const potTot = gw.reduce((a,w)=>a+wavePotential(w),0);
+    const leftTot = gw.reduce((a,w)=>a+Math.max(0,sim.hp[w.id]),0);
+    const alive = gw.filter(w=>(w.enemies||[]).some(e=>e&&e.name));
+    const kd = alive.filter(w=>sim.hp[w.id]<=1e-6).length;
+    pText(g, "R" + gp.round, PAD+6, y+26, {size:15, weight:800, fill:PC.accent});
+    pText(g, alive.length + " 波", PAD+46, y+26, {size:11.5, fill:PC.faint});
+    pFillRR(g, barX, y+13, barW, 16, 8, PC.trough);
+    if(hpTot>0){
+      let cx = barX;
+      gw.forEach(w=>(sim.seg[w.id]||[]).forEach(s=>{
+        if(s.damage<=1e-6) return;
+        const sw = barW * (s.damage/hpTot);
+        g.fillStyle = pHsl(s.team);
+        g.fillRect(cx, y+13, Math.max(1, sw), 16);
+        cx += sw;
+      }));
+      if(leftTot > 1e-6){                       // 剩余血量用斜纹底表示
+        const lw = Math.max(2, barW * (leftTot/hpTot));
+        g.save(); g.beginPath(); g.rect(cx, y+13, lw, 16); g.clip();
+        g.fillStyle = "#dfe4ee"; g.fillRect(cx, y+13, lw, 16);
+        g.strokeStyle = "#cbd4e3"; g.lineWidth = 1.5;
+        for(let k=-16; k<lw+16; k+=7){ g.beginPath(); g.moveTo(cx+k, y+29); g.lineTo(cx+k+16, y+13); g.stroke(); }
+        g.restore();
+      }
+    }
+    pText(g, "满血 " + fmt(hpTot) + " · 可提供 " + fmt(potTot) + " 分", barX, y+44, {size:11.5, fill:PC.faint});
+    pText(g, kd + "/" + alive.length + " 击破", W-PAD, y+26, {size:12.5, weight:700, align:"right",
+      fill: kd>=alive.length && alive.length ? PC.ok : PC.muted});
+    y += H_RR;
+  });
+
+  /* ---- 逐波归属 ---- */
+  y += GAP;
+  pText(g, "逐波归属", PAD, y+22, {size:16, weight:800});
+  y += H_WT;
+  const colW = (W-2*PAD-16)/wcols;
+  visibleWaves.forEach(({w,idx},displayIndex)=>{
+    const ci = Math.floor(displayIndex/wrows), ri = displayIndex % wrows;
+    const x = PAD + ci*(colW+16), yy = y + ri*H_WR;
+    if(!(w.enemies||[]).some(e=>e&&e.name)) return;
+    const owner = ownerOfWave(sim, w);
+    const oi = owner ? state.teams.filter(t=>t.on).findIndex(t=>t.id===owner.id) : -1;
+    const col = oi>=0 ? teamColor(oi) : PC.idle;
+    const hp0 = waveHp(w), left = sim.hp[w.id], dead = left<=1e-6;
+    const stW = 54, nmW = 106;
+    pText(g, String(idx+1), x+20, yy+20, {size:11, fill:PC.faint, align:"right"});
+    pText(g, "R"+w.round, x+30, yy+20, {size:11, weight:700, fill:PC.faint});
+    pText(g, (w.enemies||[]).filter(e=>e&&e.name).map(e=>e.name).join("+"), x+64, yy+20,
+          {size:12.5, weight:600, max:Math.max(40, colW-64-stW-nmW-24)});
+    const dotX = x+colW-stW-nmW-12;
+    g.beginPath(); g.arc(dotX, yy+15, 5, 0, Math.PI*2); g.fillStyle = col; g.fill();
+    pText(g, owner ? owner.name : "未覆盖", dotX+12, yy+20, {size:11.5, fill: owner?PC.muted:PC.faint, max:nmW});
+    const st = dead ? "已击破" : (left >= hp0-1e-6 ? "未触及" : ("残 " + Math.round(left/Math.max(1,hp0)*100) + "%"));
+    pText(g, st, x+colW, yy+20, {size:11, align:"right", fill: dead ? PC.ok : (left>=hp0-1e-6 ? PC.faint : PC.warn)});
+  });
+  y += wrows*H_WR;
+
+  /* ---- 页脚 ---- */
+  y += GAP;
+  g.fillStyle = PC.border; g.fillRect(PAD, y, W-2*PAD, 1);
+  pText(g, "终焉矩阵 · 队伍排布器", PAD, y+30, {size:12, weight:700, fill:PC.faint});
+  pText(g, (state.period && state.period.source) || "", W-PAD, y+30, {size:11.5, fill:PC.faint, align:"right", max:W-2*PAD-220});
+  if(!useArt) pText(g, "（本图为矢量版：未含角色立绘）", W/2, y+30, {size:11, fill:PC.faint, align:"center"});
+  return cv;
+}
+
+/* ---------- 生成 / 下载 ---------- */
+async function buildPoster(o={}){
+  const options={...o,art:true,scale:Number(o.scale)===1?1:2};
+  const imgs=await pLoadTeamImgs(),cv=document.createElement("canvas");
+  pDrawInto(cv,options,imgs,true);
+  return {canvas:cv,url:cv.toDataURL("image/png"),fellBack:false};
+}
+function posterFileName(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  return "终焉矩阵排布_" + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + "_" + p(d.getHours()) + p(d.getMinutes()) + ".png";
+}
+let POSTER = {art:true, scale:2, url:"", downloadUrl:"", blob:null, version:0, busy:false, err:"", fellBack:false, isFile:false, tall:0};
+function posterReleaseURL(url){if(url && url.startsWith('blob:')) setTimeout(()=>URL.revokeObjectURL(url),60000);}
+function posterCanvasBlob(canvas){
+  return new Promise((resolve,reject)=>{
+    canvas.toBlob(blob=>blob && blob.size?resolve(blob):reject(new Error('图片尺寸过大，请切换 1× 清晰度后重试。')),'image/png');
+  });
+}
+async function regeneratePoster(){
+  const version=++POSTER.version,options={art:true,scale:POSTER.scale};
+  posterReleaseURL(POSTER.downloadUrl);POSTER.downloadUrl='';POSTER.url='';POSTER.blob=null;
+  POSTER.busy=true;POSTER.err='';renderPosterDlg();
+  try{
+    const r=await buildPoster(options);
+    if(version!==POSTER.version) return;
+    if(!r.url || r.url==='data:,') throw new Error('图片尺寸过大，请切换 1× 清晰度后重试。');
+    const blob=await posterCanvasBlob(r.canvas);
+    if(version!==POSTER.version) return;
+    POSTER.url=r.url;POSTER.blob=blob;POSTER.downloadUrl=URL.createObjectURL(blob);POSTER.fellBack=r.fellBack;
+    POSTER.tall=r.canvas.height/options.scale;
+
+  }catch(e){if(version!==POSTER.version) return;POSTER.err='生成失败：'+(e && e.message?e.message:e);}
+  POSTER.busy=false;renderPosterDlg();
+}
+function downloadPoster(){
+  if(POSTER.busy || !POSTER.downloadUrl) return;
+  const a=document.createElement('a');
+  a.href=POSTER.downloadUrl;a.download=posterFileName();a.style.display='none';
+  document.body.appendChild(a);a.click();a.remove();
+  toast('已发起下载；若未保存，可点击「打开图片保存」');
+}
+function renderPosterDlg(){
+  const box = $("#posterBody"); if(!box) return;
+  const P = [];
+  P.push(`<div class="kmut">把当前排布（<b>${state.teams.filter(t=>t.on).length} 支上场队伍</b> · <b>${visibleWaveGroups().reduce((n,g)=>n+g.waves.length,0)} 波</b>）导出成一张完整长图：${POSTER.tall?("<b>"+POSTER_W+" × "+Math.round(POSTER.tall)+"</b> 逻辑像素"): "…"}</div>`);
+  P.push(`<div class="krow">
+      <button class="chip" id="posterQuality" ${POSTER.busy?"disabled":""} title="点击切换至 ${POSTER.scale===2?"标准 1×":"高清 2×"}">清晰度：${POSTER.scale===2?"高清 2×":"标准 1×"}</button>
+      <div style="flex:1"></div>
+      <button class="btn primary" id="posterDl" ${POSTER.downloadUrl && !POSTER.busy?"":"disabled"}>下载 PNG</button>
+      ${POSTER.downloadUrl && !POSTER.busy?`<a class="btn" id="posterOpenImage" href="${esc(POSTER.downloadUrl)}" target="_blank" rel="noopener">打开图片保存</a>`:""}
+    </div>`);
+  if(POSTER.busy) P.push(`<div class="kok">正在生成长图…</div>`);
+  else if(POSTER.err) P.push(`<div class="kwarn">${esc(POSTER.err)}</div>`);
+  else if(POSTER.url) P.push(`<div class="poster-prev"><img alt="长图预览" src="${POSTER.url}"></div>`);
+  if(POSTER.downloadUrl && !POSTER.busy) P.push(`<div class="kmut">下载无反应时，点击「打开图片保存」，电脑右键另存为，手机长按保存；微信内可选择在浏览器中打开。</div>`);
+  if(POSTER.fellBack) P.push(`<div class="kwarn">部分图片无法用于导出，已生成矢量头像版本。请检查离线头像数据文件是否完整。</div>`);
+  box.innerHTML = P.join("");
+  const quality=$("#posterQuality");
+  if(quality)quality.onclick=()=>{if(POSTER.busy)return;POSTER.scale=POSTER.scale===2?1:2;regeneratePoster();};
+  const dl = $("#posterDl");
+  if(dl) dl.onclick=downloadPoster;
+}
+function setPosterOpen(v){
+  const d = $("#posterDlg"); if(!d) return;
+  d.hidden = !v;
+  if(v){ POSTER.art=true;regeneratePoster(); }
+  else{POSTER.version++;POSTER.busy=false;posterReleaseURL(POSTER.downloadUrl);POSTER.downloadUrl="";POSTER.blob=null;POSTER.url="";}
+}
+
+/* 右栏折叠采用高度动画；期次切换保持滚动位置与队伍。 */
+function matrixMotionAllowed(){return !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;}
+function animateMatrixFold(el, opening, commit){
+  if(el.dataset.animating) return;
+  if(!el.animate || !matrixMotionAllowed()){commit();return;}
+  const start=el.getBoundingClientRect().height;
+  const header=el.querySelector(":scope > summary, :scope > .rg-head");
+  if(opening){commit();const fresh=el.isConnected?el:document.querySelector(`[data-round="${el.dataset.round}"]`);if(fresh){const end=fresh.getBoundingClientRect().height;fresh.animate([{height:start+"px"},{height:end+"px"}],{duration:240,easing:"ease-out"});fresh.animate([{opacity:.5,transform:"translateY(-5px)"},{opacity:1,transform:"translateY(0)"}],{duration:240,easing:"ease-out"});}return;}
+  el.dataset.animating="1";el.style.overflow="hidden";
+  const animation=el.animate([{height:start+"px"},{height:header.getBoundingClientRect().height+"px"}],{duration:220,easing:"ease-in-out"});
+  animation.onfinish=()=>{delete el.dataset.animating;el.style.overflow="";commit();};
+}
+function initMatrixTransitions(){
+  const panel=$("#colWaves");
+  panel.addEventListener("click",e=>{
+    const summary=e.target.closest("details.sec > summary, details.matrix-real-team > summary");if(!summary || !panel.contains(summary))return;
+    e.preventDefault();const detail=summary.parentElement;
+    animateMatrixFold(detail,!detail.open,()=>{detail.open=!detail.open;});
+  });
+}
+function switchMatrixPeriod(id){
+  if(MX_STAGES[String(id)]?.mode!=="singularity" || String(id)===state.stageId)return;
+  const panel=$("#colWaves"),scroll=panel.scrollTop,pageY=window.scrollY;
+  if(!applyStage(id,{source:"内置数据 "+MX_VER,online:false,resetWaves:true}))return;
+  state.openRound={};state.openWave={};closeTeamPop();
+  renderAll();renderSettings();syncModeTabs();save();
+  panel.scrollTop=scroll;window.scrollTo({top:pageY,behavior:"instant"});
+  if(matrixMotionAllowed()) for(const selector of ["#intel","#waves","#sum"]){const el=$(selector);if(el?.animate)el.animate([{opacity:.3,transform:"translateY(8px)"},{opacity:1,transform:"translateY(0)"}],{duration:300,easing:"cubic-bezier(.2,.8,.2,1)"});}
+  toast("已切换到第 "+(state.period.cycle.id||id)+" 期");
+}
+
+/* =========================================================================
+   启动
+   ========================================================================= */
+(function init(){
+  const verTag = (()=>{ try{ const s = MX_STAGES[MX_CUR.singularity]; return (s && s.season && s.season.tag) || ""; }catch(e){ return ""; } })();
+  const vh = document.getElementById("verHint");
+  if(vh) vh.textContent = "数据 " + MX_VER + (verTag?(" · "+verTag):"");
+
+  const ok = load({latest:true});
+  if(!ok){
+    defaultStateFor("singularity");
+  }
+  kuroLoad();                                   // 读取本机保存的库街区账号（token 单独存，不进 state）
+  initRoleDialog();initBossDialog();initBuffDialog();initMatrixTransitions();
+  state.waves.forEach(w=>w.enemies.forEach(e=>{ if(!e.uid) e.uid=nid(); }));
+  renderElChips(); renderBossChips(); renderSettings();
+  syncModeTabs();
+  renderAll();
+  if(KURO.user && KURO_CRED.token)readAccountMatrix().catch(()=>{});
+  /* 入场动效只在启动时播一次（1.5s 后移除标记，避免后续重渲染反复闪） */
+  document.body.classList.add("reveal");
+  setTimeout(()=>document.body.classList.remove("reveal"), 1500);
+})();
+</script>
+<div id="teamPop" class="tpop" hidden></div>
+<script src="data/interface_motion.js"></script>
+</body>
+</html>
