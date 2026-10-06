@@ -13,7 +13,7 @@ function cleanCloudPayload(raw){
 async function cloudClient(){
   if(!CLOUD.client){
     CLOUD.client=(async()=>{
-      const {default:cloudbase}=await import('../assets/vendor/cloudbase-3.4.8.js');
+      const {default:cloudbase}=await import('../assets/vendor/cloudbase-3.4.8.js?bundle=1');
       const cfg=window.MATRIX_CLOUD_CONFIG;if(!cfg?.env||!cfg.publishableKey)throw Error('云方案服务尚未配置');
       const app=cloudbase.init({env:cfg.env,region:cfg.region,accessKey:cfg.publishableKey});
       const auth=typeof app.auth==='function'?app.auth():app.auth;
