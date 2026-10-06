@@ -747,6 +747,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <link rel="stylesheet" href="styles/buff-picker.css">
 <link rel="stylesheet" href="styles/matrix-panel.css">
 <link rel="stylesheet" href="styles/interface.css">
+<link rel="stylesheet" href="styles/workspace-nav.css">
 </head>
 <body>
 
@@ -811,7 +812,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
       <div class="contrib" id="contrib"></div>
     </div>
 
-    <details class="sec" open>
+    <details class="sec" id="hpOverviewSection" open>
       <summary>BOSS 血条推演（按轮次）</summary>
       <div style="padding:0 13px 12px" id="hpOverview"></div>
     </details>
@@ -858,6 +859,18 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 </div>
 
 <div id="ghost"></div>
+<section id="bossAtlas" class="boss-atlas" aria-labelledby="bossAtlasTitle" hidden>
+  <div class="atlas-heading"><div><span>MATRIX / INTELLIGENCE</span><h1 id="bossAtlasTitle">当期 BOSS 情报</h1><p id="bossAtlasPeriod"></p></div><button type="button" class="btn ghost" id="bossAtlasBack">返回编排</button></div>
+  <div id="bossAtlasRows" class="atlas-rows"></div>
+</section>
+<nav id="workspaceNav" class="workspace-nav" aria-label="功能分区">
+  <button type="button" data-workspace="pool"><span aria-hidden="true">◈</span>共鸣者</button>
+  <button type="button" data-workspace="teams" aria-current="page"><span aria-hidden="true">▦</span>队伍</button>
+  <button type="button" data-workspace="waves"><span aria-hidden="true">▤</span>血线</button>
+  <button type="button" data-workspace="boss"><span aria-hidden="true">◇</span>BOSS 情报</button>
+  <button type="button" id="workspaceNavHide" aria-label="收起导航" title="收起导航">⌄</button>
+</nav>
+<button type="button" id="workspaceNavShow" class="workspace-nav-show" aria-label="展开分区导航" aria-expanded="false" aria-controls="workspaceNav" hidden>☰ 导航</button>
 <div id="poolScrim" hidden></div>
 
 <!-- 库街区账号：token 登录 → 导入账号信息 + 已拥有角色（内容由 renderKuroDlg 渲染） -->
@@ -2528,6 +2541,9 @@ function bossHandbookHTML(enemy){
   return `<section class="boss-handbook"><h3>BOSS 特性</h3>${entry.desc?`<p>${paragraph(entry.desc)}</p>`:''}${sections||'<p class="boss-feature-empty">暂无特性资料。</p>'}${recommendations}</section>`;
 }
 function openBossDialog(wid,ei,stageBossId){
+  if(stageBossId && typeof window.matrixNavigate==='function'){
+    window.matrixNavigate('boss',{focusId:stageBossId});return;
+  }
   let wave=wid?findWave(wid):null,enemy=wave && wave.enemies[ei];
   if(stageBossId){
     const stage=MX_STAGES[state.stageId],boss=stage && stage.waves.find(b=>String(b.id)===stageBossId);
@@ -2544,7 +2560,9 @@ function openBossDialog(wid,ei,stageBossId){
   if(wave) info.push(['单体血量',fmt(enemyHpOf(wave,enemy))],['血量依据',hpSourceLabel(hpEntry)]);
   if(hpEntry) info[2]=['关卡等级',hpEntry.level];
   if(wave) info.push(['当前轮次' ,'R'+wave.round],['本轮总血量',fmt(waveHp(wave))],['剩余血量',fmt(left)],['可提供积分',fmt(wavePotential(wave))+' 分'],['击破额外得分',fmt(killScoreOf(wave))+' 分']);
-  const image=enemy.icon?`<img src="${esc(enemy.icon)}" alt="${esc(enemy.name)}" onerror="if(!resourceImageError(this)){this.hidden=true;this.nextElementSibling.hidden=false}"><span hidden>暂无大图</span>`:'<span>暂无大图</span>';
+  const handbook=typeof MATRIX_BOSS_DETAILS!=='undefined'?MATRIX_BOSS_DETAILS[String(state.stageId)]?.[String(enemy.wid)]:null;
+  const art=handbook?.monsterId===enemy.monsterId && handbook.art ? handbook.art : enemy.icon;
+  const image=art?`<img src="${esc(art)}" alt="${esc(enemy.name)}" onerror="if(!resourceImageError(this)){this.hidden=true;this.nextElementSibling.hidden=false}"><span hidden>暂无大图</span>`:'<span>暂无大图</span>';
   document.getElementById('bossDialogBody').innerHTML=`<div class="boss-large-art">${image}</div><div class="boss-info"><span class="boss-eyebrow">MATRIX / BOSS</span><h2 id="bossDialogTitle">${esc(enemy.name)}</h2><p>${esc(state.period.label||'当期矩阵')}</p><dl>${info.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(String(value))}</dd></div>`).join('')}</dl></div>${bossHandbookHTML(enemy)}`;
   document.getElementById('bossDlg').hidden=false;
   document.getElementById('bossDialogClose').focus({preventScroll:true});
@@ -2794,6 +2812,7 @@ function renderBossPool(){
     return `<button class="unit boss-catalog-item" data-boss-stage="${b.id}" title="查看 ${esc(b.name)} 大图和信息">${avatarHTML(icon,b.name)}<div class="nm">${esc(b.name)}</div></button>`;
   }).join("") || '<div class="empty-note">暂无当期 BOSS 数据</div>';
   bindBossViews(box);
+  if(typeof window.renderBossAtlas==='function') window.renderBossAtlas();
 }
 
 /* =========================================================================
@@ -2853,6 +2872,10 @@ function bindUnitDrag(scope){
 let poolOpen = false;
 function setPoolOpen(v){
   poolOpen = !!v;
+  if(window.innerWidth<900 && typeof window.matrixNavigate==='function'){
+    if(!poolOpen) pendingCharSlot=null;
+    window.matrixNavigate(poolOpen?'pool':'teams',{fromPool:true});markPicked();return;
+  }
   if(!poolOpen) pendingCharSlot=null;
   const p = $("#colPool"), s = $("#poolScrim");
   if(p) p.classList.toggle("open", poolOpen);
@@ -3838,6 +3861,7 @@ function switchMatrixPeriod(id){
 </script>
 <div id="teamPop" class="tpop" hidden></div>
 <script src="data/interface_motion.js"></script>
+<script src="data/workspace_nav.js"></script>
 <script src="data/cloud_config.js"></script>
 <script src="data/cloud_plans.js"></script>
 </body>

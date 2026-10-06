@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 215662,
-    "sha256": "ac8bd1a2381d0831ca1e9fea755a1b87a337b8d1d0daf62ec8d7e8a17781b624"
+    "bytes": 217600,
+    "sha256": "7f76378798126249c7aca6e6966f988c5335c891ac1cc4b983779ad38bbf2614"
   },
   "_headers": {
     "bytes": 149,
@@ -56,8 +56,8 @@
     "sha256": "db6f2fcf32fa7d603a9abb4b5b2993b6dd7e7005481fee57246367decf2ea425"
   },
   "data/matrix_boss_details.js": {
-    "bytes": 107679,
-    "sha256": "955dee544b7f2352c3cb791ed1d59338d267b72c17a6858112f02b7e2d2216c4"
+    "bytes": 126203,
+    "sha256": "560869916ad65501bafcb6e78cc993976cc0ac219be3a66cde93f263363768d0"
   },
   "data/matrix_hp.js": {
     "bytes": 77388,
@@ -87,6 +87,10 @@
     "bytes": 3918951,
     "sha256": "0abb520a976f4eae07e3753f647bc9ee0c772841c77ba19e95521692570a954a"
   },
+  "data/workspace_nav.js": {
+    "bytes": 5257,
+    "sha256": "3822c51012aa946de882db569853424727475d935b6b8f40c9a3c2288bf747ef"
+  },
   "styles/boss-view.css": {
     "bytes": 3374,
     "sha256": "11159bd749b5657bc2266b69a6c1769252c046362ed97dedb32e98a6de952096"
@@ -114,6 +118,10 @@
   "styles/role-material.css": {
     "bytes": 10400,
     "sha256": "2c5d4a3202143240255135ab642e9e1652217b98d725cdda335562bda4c1c0e3"
+  },
+  "styles/workspace-nav.css": {
+    "bytes": 5748,
+    "sha256": "df038fd819eac4ebb18a0d65ac3fabb7e2297c58c17cbc94ef2fb5aaf0582d79"
   },
   "assets/boss/310000010.webp": {
     "bytes": 28140,
@@ -2379,6 +2387,170 @@
     "bytes": 29416,
     "sha256": "84efb81dee01986cbfd1eb1080342d7a0bb5a971d065a4e6d2332811e20102b6"
   },
+  "assets/matrix/handbook/T_Boss.webp": {
+    "bytes": 392288,
+    "sha256": "5f2316d64673454980e27e5979444f80f8650d373874ed237bb0c047c0f84034"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex1.webp": {
+    "bytes": 17092,
+    "sha256": "01f3a545051fa52c15c89172604bec48720d61219eb9683f426755d9ab14f0e8"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex10.webp": {
+    "bytes": 22274,
+    "sha256": "1ebcf4378718c5a34a8cebeaea05a3c33fea9c98cc7a02fa589e73320073ea93"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex12.webp": {
+    "bytes": 26026,
+    "sha256": "0d16c86f5eae15bd3be902742c45bd9a9ac34847936bae55ce5983afcc410f6d"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex13.webp": {
+    "bytes": 23540,
+    "sha256": "c9b5d08af720d61abf1a6cad7f1b6f60a30ef8fa9fbbf8e1241e51223e3e460c"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex14.webp": {
+    "bytes": 27214,
+    "sha256": "2e2cb63a6312895024cf446dafc0e45ebbc5bb8e15a757f188f43b8c293fa6ab"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex15.webp": {
+    "bytes": 30584,
+    "sha256": "26152f7d89e778fde54d962845379c616f5e3fc6bfa4fcc43e27e19ba72a4f91"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex16.webp": {
+    "bytes": 25722,
+    "sha256": "acf0f3cbc311a63a77ef57e31e0eb4dab65098083031ada971fd9acbe362ac7f"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex17.webp": {
+    "bytes": 22460,
+    "sha256": "309621f4ebb25265fad24ee0ac05af4a3969d51a60534792f1a5eca85f73896f"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex18.webp": {
+    "bytes": 23592,
+    "sha256": "fd693088b9b92c62397cdeaaaa18c595ec4c33c00a228192c09950b0e6741118"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex19.webp": {
+    "bytes": 25600,
+    "sha256": "e0a2045e8eb31e7a3d1f3cb409b5a2b73b552095db75146ea2d32c7f841cee9c"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex2.webp": {
+    "bytes": 9962,
+    "sha256": "6f4629792efc9a6365a72375553361c9686afc4f396668586a6875bf1e6382f9"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex3.webp": {
+    "bytes": 26356,
+    "sha256": "0b7a54c69cc42a58106eb271576e009e7edd16a2658b567da7ba2efdf8272cc4"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex4.webp": {
+    "bytes": 19708,
+    "sha256": "522c056ea52e3d03a4346241e69ad8c02f85b459cb5c4a1bffadcba0566c4d17"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex5.webp": {
+    "bytes": 17402,
+    "sha256": "7f8ed28b579fa47e9644422cff508b08ea52da212180730d53e11470775a54f0"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex6.webp": {
+    "bytes": 20016,
+    "sha256": "043eded53fa5ab0fbc9d87e912f7ee77f429a7342a813065ca563e7dee6e103b"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex7.webp": {
+    "bytes": 24726,
+    "sha256": "daaa2afd30b51d0a76fe09b6af68630dda9ac35d597b4a3f76c638cceeaad9b8"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex8.webp": {
+    "bytes": 21832,
+    "sha256": "4bc60c6a96b643dd27cb3f42fc75d43037f0bc79760903066a2c1119083e11c8"
+  },
+  "assets/matrix/handbook/T_BossLevelItemTex9.webp": {
+    "bytes": 21434,
+    "sha256": "ecf52b0d225c49a8934ee985f84346e11b4c6bcbce8d433de42b1af88900f05a"
+  },
+  "assets/matrix/handbook/T_IconMonsterGoods160_321_UI.webp": {
+    "bytes": 8822,
+    "sha256": "17a1e68579a10c59a658929690afda4bbf1b52a4563b62fbb1676976faedde99"
+  },
+  "assets/matrix/handbook/T_IconMonsterGoods160_994_UI.webp": {
+    "bytes": 15600,
+    "sha256": "ba08e6cd6920448662ffb6db75f7eabd1b216d0d6501aab64badd515976ed8b3"
+  },
+  "assets/matrix/handbook/T_IconMonsterGoods160_996_UI.webp": {
+    "bytes": 10594,
+    "sha256": "cb62600b2c322560739403af1f1316193d7763d94ab615d71f4830a8f8864009"
+  },
+  "assets/matrix/handbook/T_IconMonsterGoods160_SG_33009_UI.webp": {
+    "bytes": 11544,
+    "sha256": "d8c355992ca0040e13d67304b76e1907331eed6101be30683c2d83ffb92c506e"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss1.webp": {
+    "bytes": 215798,
+    "sha256": "a2d14bea9aa8e163a93d96f0364332fa8e88c549914bc7db1ef6ee55a3c3bff1"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss10.webp": {
+    "bytes": 327040,
+    "sha256": "15e060dacdb4dbbd94127f2b345b2408272cc4868163aee9056aca01f932ed0c"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss12.webp": {
+    "bytes": 392078,
+    "sha256": "1db4959088a55c47ac10c00a055d9d1cf7d9f8f2c1b6c6115d0c7c66a77ea9c0"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss13.webp": {
+    "bytes": 526228,
+    "sha256": "35135cd762e8cc67249476b968353141b14aacd263a4f7ea5cbac2cdcb0f8484"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss14.webp": {
+    "bytes": 417080,
+    "sha256": "8e70833595621283c9ca30474fc5a9a9713174adaae0d680d58d374b41e105c4"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss15.webp": {
+    "bytes": 678510,
+    "sha256": "dfa6838ed8c38208f8abd8001a73f7ad8746946818a7eb9760817f84cd6d3713"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss16.webp": {
+    "bytes": 590392,
+    "sha256": "5b77770ab5ef8f99bd0123f658c7439d7d650ec369fb616086f43969a4c10a3b"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss17.webp": {
+    "bytes": 499730,
+    "sha256": "d993bad67163e2dd4662a6ffa29bec1cb5491dba7620fa5d5b9f2931b4fb09a2"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss18.webp": {
+    "bytes": 485882,
+    "sha256": "39202e524e7ee384a7d65ba4e04d6a99ce00c7e02ce8b2a7bca8a9e7dfa44b82"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss19.webp": {
+    "bytes": 472880,
+    "sha256": "268ce32f44b080ae18cb4478231683830d6d15b4924f85703adb034d2402759b"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss2.webp": {
+    "bytes": 323260,
+    "sha256": "9c4852fa4bd11846e628c233b8158d990af2e0afed55a70fc4c7214f6bd6ddf0"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss3.webp": {
+    "bytes": 573668,
+    "sha256": "ac6785b7ce440ac3365caa3cb247583b90de282edbd4c764460a3abf433f5987"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss4.webp": {
+    "bytes": 364536,
+    "sha256": "4f5d7d85c0fa1ed22cd723ee1c638de616487f2392e43af66a3b641db7cfc4c8"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss5.webp": {
+    "bytes": 407822,
+    "sha256": "b50afa8fa5c7302dc641a1aee2ecd500905515b4b95d010bbe8e45771b19e4b3"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss6.webp": {
+    "bytes": 383014,
+    "sha256": "a83563968e332c80520345c7f9e1224d14834167cd7ca7695832171c94846c9d"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss7.webp": {
+    "bytes": 454030,
+    "sha256": "b89d4c855f185cf00b7f33e245d992105659e0a4df380c556be32c5246c043ba"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss8.webp": {
+    "bytes": 315918,
+    "sha256": "7cf8d21af724dc281bba4f7044291ebf15e420525f47a128361d810315536cad"
+  },
+  "assets/matrix/handbook/T_LevelModeBoss9.webp": {
+    "bytes": 335728,
+    "sha256": "881b958ae3a215fd8f9867695fdc801bc47bd221d03e127148913446fd18a3ab"
+  },
   "assets/matrix/matrix-emblem.webp": {
     "bytes": 1540,
     "sha256": "3393d0b84f4d68fab3ed8b58a171dba22e212cc599aab70048d6251e51d5bea8"
@@ -3096,7 +3268,7 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 39856,
-    "sha256": "a49c62aa97337f2819a667609c6e3b3cd9fb871d808e0a6eada19494c42eb0f2"
+    "bytes": 40128,
+    "sha256": "62e079f55c6ddb85c85d1d9d64fcfd98417b0f19729b2f9df4510f2b0465c45c"
   }
 }
