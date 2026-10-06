@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 219627,
-    "sha256": "afca901173328227c6b7f7d1d518e337b57fddc9eef56c72819f9bcab9099494"
+    "bytes": 218966,
+    "sha256": "d888de299e635c2ddcb4d94e9f40f06a4815549a9c4b2f14ba5f6fb21a6b98a9"
   },
   "_headers": {
     "bytes": 149,
@@ -92,8 +92,8 @@
     "sha256": "15ee969eb8dd4db8960c405270d1db515c054b01d219a98c2573fa70b3645bed"
   },
   "data/weapon_archive.js": {
-    "bytes": 2673,
-    "sha256": "bb4175e292ba477fa3d46ca241eb6e4f0f7aac01c7b782ff2553c74d754e10d8"
+    "bytes": 2747,
+    "sha256": "b9b08d6f03f3ee6a1e2b64ab7566aac63f594819964ef51fd87515a55fcbd5ae"
   },
   "data/weapon_details.js": {
     "bytes": 182414,
@@ -136,8 +136,8 @@
     "sha256": "2c5d4a3202143240255135ab642e9e1652217b98d725cdda335562bda4c1c0e3"
   },
   "styles/workspace-nav.css": {
-    "bytes": 25122,
-    "sha256": "bbee77ac3fe784301a32c24b2f8fb455a27a957ab83ab5ead6a4d73614d59412"
+    "bytes": 26461,
+    "sha256": "82f973f97df14f587a8084636d1fb7569cf4476098d6a85166da02115fd5a351"
   },
   "assets/boss/310000010.webp": {
     "bytes": 28140,
@@ -3540,7 +3540,7 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 41080,
-    "sha256": "686067e2d37df2d88dcd2e34cbf769ecc04a8740c0b63e63c154b6489977412d"
+    "bytes": 41367,
+    "sha256": "068415a93ec27d8588fde078e3476971b6b67ca7434f559c0bc00e0df9038f51"
   }
 }

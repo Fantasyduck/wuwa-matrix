@@ -2,7 +2,7 @@
 (()=>{
  let current=null,rank=1,level='90';
  const body=document.getElementById('libraryDialogBody');
- const value=row=>row.IsRatio||row.IsPercent?(Number(row.Value)*100).toFixed(1).replace(/\.0$/,'')+'%':fmt(Math.round(Number(row.Value)));
+ const value=row=>row.IsPercent?(Number(row.Value)/100).toFixed(1).replace(/\.0$/,'')+'%':row.IsRatio?(Number(row.Value)*100).toFixed(1).replace(/\.0$/,'')+'%':fmt(Math.round(Number(row.Value)));
  window.renderWeaponArchive=(item,reset=true)=>{
   if(reset){current=item;rank=1;level=String(WEAPON_DETAILS[item.id]?.maxLevel||90);}
   const d=WEAPON_DETAILS[item.id],effect=d?.refinements?.find(r=>r.rank===rank),stats=d?.stats?.[level]||[];

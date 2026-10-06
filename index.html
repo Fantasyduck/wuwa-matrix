@@ -1934,7 +1934,6 @@ function teamPreviewHTML(t, r, covered){
   const toIdx   = r.to>=r.from ? r.to   : -1;
   const wFrom = fromIdx>=0 ? state.waves[fromIdx] : null;
   const wTo   = toIdx>=0 ? state.waves[toIdx] : null;
-  const rounds = fromIdx>=0 ? Array.from(new Set(state.waves.slice(fromIdx,toIdx+1).map(w=>Number(w.round)||0))) : [];
   const heirs = [];
   if(fromIdx>=0){
     state.waves.slice(fromIdx,toIdx+1).forEach(w=>{
@@ -1943,9 +1942,7 @@ function teamPreviewHTML(t, r, covered){
   }
   const cross = `<div class="tpop-cross">
       <span>跨越 <b>${fromIdx>=0?("第 "+(fromIdx+1)+" 波 · R"+(Number(wFrom.round)||0)):"—"}</b> → <b>${toIdx>=0?("第 "+(toIdx+1)+" 波 · R"+(Number(wTo.round)||0)):"—"}</b></span>
-      <span>计划覆盖 <b>${covered.length}</b> 波</span>
       ${teamSwitchCount(r)>0?`<span>转火 <b>${teamSwitchCount(r)}</b> 次</span>`:""}
-      <span>跨 <b>${rounds.length}</b> 个轮次</span>
       <span>击破 <b>${r.cleared}</b> 波</span>
       ${heirs.length?`<span>同波共战 <b>${heirs.map(id=>esc((findTeam(id)||{}).name||"")).join("、")}</b></span>`:`<span>无同波共战</span>`}
     </div>`;
@@ -2002,11 +1999,6 @@ function teamPreviewHTML(t, r, covered){
     ? "该队暂无覆盖到的波次（前序队伍未推到这里）。"
     : "预估得分为 0，尚未折算伤害，血条不会削减——请按你的打法填写预估得分。" }</div>`;
 
-  const shortIdx = r.shortWave ? state.waves.findIndex(w=>w.id===r.shortWave) : -1;
-  const status = r.shortfall>0
-    ? `<div class="note bad">⚠ 按你填的 ${fmt(scoreIn)} 分，第 ${shortIdx>=0?(shortIdx+1):"-"} 波打不穿，残留 ${fmt(r.shortfall)} 血量交给后续队伍；可调高该队预估得分。</div>`
-    : (covered.length ? `<div class="note">计划覆盖 ${covered.length} 波，实际击破 ${r.cleared} 波。</div>` : "");
-
   return `<div class="tprev">
     <div class="tprev-head">队伍明细 · 血条推演</div>
     <div class="tprev-body">
@@ -2015,7 +2007,6 @@ function teamPreviewHTML(t, r, covered){
       ${cross}
       <div class="tpop-sec">得分</div>
       <div class="kv"><span>你填的预估得分（可用积分；已含全部增益，不含奇藏击杀分）</span><b style="color:var(--accent)">${fmt(scoreIn)}</b></div>
-      <div class="kv"><span>本次实际消耗积分（＝逐波伤害折算之和）</span><b>${fmt(r.used)}</b></div>
       <div class="kv"><span>奇藏击杀分（本队击破 ${r.chests||0} 个）</span><b style="color:${(r.killScore||0)>0?"var(--ok)":"var(--muted)"}">${(r.killScore||0)>0?("+"+fmt(r.killScore)):"0"}</b></div>
       <div class="kv"><span>最终得分＝消耗积分＋奇藏击杀分</span><b style="color:var(--accent);font-size:13px">${fmt(r.score)}</b></div>
       ${(r.idle||0)>0.5 ? `<div class="note warn">该队波次已全部打穿，剩余 ${fmt(r.idle)} 分估分未计入——可适当调低估分，或让该队多分几波。</div>` : ""}
@@ -2024,7 +2015,6 @@ function teamPreviewHTML(t, r, covered){
       <div class="kv"><span>本队实际削减血量</span><b>${fmt(r.damage)}</b></div>
       <div class="kv"><span>伤害折算得分（＝伤害 × 该波系数 ÷ 1e6）</span><b>${fmt(r.dmgScore)}</b></div>
       ${r.shortfall>0 ? `<div class="kv"><span>还需补的输出</span><b style="color:var(--bad)">${fmt(r.shortfall)}</b></div>` : ""}
-      ${status}
       ${buff ? `<div class="note">已选回路：${esc(buff.name)}——${esc(fillDesc(buff))}</div>` : `<div class="note warn">未选择增幅回路，仅作排布记录。</div>`}
       <div class="tpop-sec">逐波明细</div>
       ${rows}
@@ -2761,7 +2751,7 @@ function renderIntel(){
   const tasks = [].concat(
     (p.cycleTasks||[]).map(t=>({t:"循环", d:t.desc, pt:t.points})),
     (p.challengeTasks||[]).map(t=>({t:"挑战", d:t.desc, pt:t.points}))
-  ).map(x=>`<div class="t"><b>${x.t}</b><span>${esc(x.d)}${x.pt?`（${x.pt}）`:""}</span></div>`).join("");
+  ).map(x=>`<div class="t ${x.t==='循环'?'task-cycle':'task-challenge'}"><b class="task-kind">${x.t}</b><span class="task-description">${esc(x.d)}</span>${x.pt?`<span class="task-points" aria-label="任务分值 ${Number(x.pt)}"><small aria-hidden="true">◇</small>${fmt(Number(x.pt))}</span>`:""}</div>`).join("");
 
   box.innerHTML = `
     ${periodSel}
@@ -2769,7 +2759,7 @@ function renderIntel(){
     <div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">增幅回路</div>${buffs}</div>
     ${state.roles.length?`<div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">强化共鸣者</div><div class="chips" style="margin-top:0">${roleChips}${spChip}</div></div>`:""}
     ${tiers?`<div><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">积分档位</div><div class="tierlist">${tiers}</div></div>`:""}
-    ${tasks?`<details class="sec" style="border-top:1px dashed var(--border)"><summary style="padding-left:0">周期 / 挑战任务</summary><div class="tasklist" style="padding:0 0 6px">${tasks}</div></details>`:""}
+    ${tasks?`<details class="sec period-tasks" style="border-top:1px dashed var(--border)"><summary>周期 / 挑战任务</summary><div class="tasklist">${tasks}</div></details>`:""}
   `;
 
   const sel = $("#periodSel");
