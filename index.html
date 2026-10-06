@@ -890,6 +890,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <script src="data/monsters.js"></script>
 <script src="data/matrix.js"></script>
 <script src="data/matrix_hp.js"></script>
+<script src="data/matrix_boss_details.js"></script>
 <script>
 /* =========================================================================
    基础常量
@@ -2516,6 +2517,16 @@ function bindBossViews(scope){
     button.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" ") open(ev);};
   });
 }
+function bossHandbookHTML(enemy){
+  const stage=MX_STAGES[String(state.stageId)];
+  const base=stage?.waves.find(b=>String(b.id)===String(enemy.wid));
+  const entry=typeof MATRIX_BOSS_DETAILS!=="undefined" ? MATRIX_BOSS_DETAILS[String(state.stageId)]?.[String(enemy.wid)] : null;
+  if(!base || !entry || String(entry.monsterId)!==String(base.monsterId) || enemy.monsterId!=null && String(enemy.monsterId)!==String(entry.monsterId)) return `<section class="boss-handbook"><h3>BOSS 特性</h3><p class="boss-feature-empty">该关卡暂无对应特性资料。</p></section>`;
+  const paragraph=text=>esc(String(text)).replace(/\n/g,'<br>');
+  const sections=(entry.sections||[]).map(group=>`<section class="boss-feature-group"><h4>${group.kind===1?'基础特性':'额外特性'}</h4>${group.entries.map(item=>`<article class="boss-feature-card"><h5>${esc(item.title)}</h5><p>${paragraph(item.desc)}</p></article>`).join('')}</section>`).join('');
+  const recommendations=(entry.recommendations||[]).length?`<section class="boss-feature-group boss-recommendation"><h4>阵容方向</h4>${entry.recommendations.map(text=>`<p>${paragraph(text)}</p>`).join('')}</section>`:'';
+  return `<section class="boss-handbook"><h3>BOSS 特性</h3>${entry.desc?`<p>${paragraph(entry.desc)}</p>`:''}${sections||'<p class="boss-feature-empty">暂无特性资料。</p>'}${recommendations}</section>`;
+}
 function openBossDialog(wid,ei,stageBossId){
   let wave=wid?findWave(wid):null,enemy=wave && wave.enemies[ei];
   if(stageBossId){
@@ -2534,7 +2545,7 @@ function openBossDialog(wid,ei,stageBossId){
   if(hpEntry) info[2]=['关卡等级',hpEntry.level];
   if(wave) info.push(['当前轮次' ,'R'+wave.round],['本轮总血量',fmt(waveHp(wave))],['剩余血量',fmt(left)],['可提供积分',fmt(wavePotential(wave))+' 分'],['击破额外得分',fmt(killScoreOf(wave))+' 分']);
   const image=enemy.icon?`<img src="${esc(enemy.icon)}" alt="${esc(enemy.name)}" onerror="if(!resourceImageError(this)){this.hidden=true;this.nextElementSibling.hidden=false}"><span hidden>暂无大图</span>`:'<span>暂无大图</span>';
-  document.getElementById('bossDialogBody').innerHTML=`<div class="boss-large-art">${image}</div><div class="boss-info"><span class="boss-eyebrow">MATRIX / BOSS</span><h2 id="bossDialogTitle">${esc(enemy.name)}</h2><p>${esc(state.period.label||'当期矩阵')}</p><dl>${info.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(String(value))}</dd></div>`).join('')}</dl></div>`;
+  document.getElementById('bossDialogBody').innerHTML=`<div class="boss-large-art">${image}</div><div class="boss-info"><span class="boss-eyebrow">MATRIX / BOSS</span><h2 id="bossDialogTitle">${esc(enemy.name)}</h2><p>${esc(state.period.label||'当期矩阵')}</p><dl>${info.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(String(value))}</dd></div>`).join('')}</dl></div>${bossHandbookHTML(enemy)}`;
   document.getElementById('bossDlg').hidden=false;
   document.getElementById('bossDialogClose').focus({preventScroll:true});
 }

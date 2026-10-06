@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 214189,
-    "sha256": "8cbf9cf64373beb7f6d1a1a3b76a548404b7b21618b1b1df3b343dd0bf92156b"
+    "bytes": 215662,
+    "sha256": "ac8bd1a2381d0831ca1e9fea755a1b87a337b8d1d0daf62ec8d7e8a17781b624"
   },
   "_headers": {
     "bytes": 149,
@@ -55,6 +55,10 @@
     "bytes": 129112,
     "sha256": "db6f2fcf32fa7d603a9abb4b5b2993b6dd7e7005481fee57246367decf2ea425"
   },
+  "data/matrix_boss_details.js": {
+    "bytes": 107679,
+    "sha256": "955dee544b7f2352c3cb791ed1d59338d267b72c17a6858112f02b7e2d2216c4"
+  },
   "data/matrix_hp.js": {
     "bytes": 77388,
     "sha256": "28467836f8747c654731baebddbdf551d69583b9b3cda71b8c13df29ac096a4f"
@@ -84,8 +88,8 @@
     "sha256": "0abb520a976f4eae07e3753f647bc9ee0c772841c77ba19e95521692570a954a"
   },
   "styles/boss-view.css": {
-    "bytes": 2341,
-    "sha256": "4b93991929c281f5041c1f9a8db5ceaa2bdfce8e7677aa7f63aa8c436dc713bf"
+    "bytes": 3374,
+    "sha256": "11159bd749b5657bc2266b69a6c1769252c046362ed97dedb32e98a6de952096"
   },
   "styles/buff-picker.css": {
     "bytes": 3064,
