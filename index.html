@@ -890,7 +890,6 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <script src="data/monsters.js"></script>
 <script src="data/matrix.js"></script>
 <script src="data/matrix_hp.js"></script>
-<script src="data/matrix_real.js"></script>
 <script>
 /* =========================================================================
    基础常量
@@ -907,7 +906,7 @@ const NANOKA_ASSET = "https://static.nanoka.cc/assets/ww/";
 /* 内置的矩阵数据（由 _数据管线/build/build_matrix.py 生成） */
 const MX_STAGES = (typeof MATRIX_STAGES !== "undefined") ? MATRIX_STAGES : {};
 const MX_INDEX  = (typeof MATRIX_INDEX  !== "undefined") ? MATRIX_INDEX  : {};
-/* 页面默认最新奇点扩张；血量来源期次单独由 MX_REAL_KEY 管理。 */
+/* 页面默认最新奇点扩张；血量来源期次单独由 MX_MATCHED_HP 管理。 */
 function singularityStageIds(){
   return Object.keys(MX_STAGES).filter(id=>MX_STAGES[id].mode==="singularity")
     .sort((a,b)=>Number(MX_STAGES[b].cycle?.id||0)-Number(MX_STAGES[a].cycle?.id||0)||Number(b)-Number(a));
@@ -920,21 +919,10 @@ const MX_WAVEHP  = (typeof MATRIX_WAVE_HP  !== "undefined") ? MATRIX_WAVE_HP  : 
 const MX_HPCURVE = (typeof MATRIX_HP_CURVE !== "undefined") ? MATRIX_HP_CURVE : {};
 const MX_HPMETA  = (typeof MATRIX_HP_META  !== "undefined") ? MATRIX_HP_META  : {baseHp:5000000, roundMult:[1,2,4], curveId:3001, src:"—"};
 
-/* 实测血量表（由 _数据管线/build/build_real.py 生成，玩家提供的通用实测数据）：
-   按「期次(cycle)」索引，逐波给出真实生命值与积分系数，优先于估算公式。
-   ★ 这张表是**通用表**：之后每一期矩阵都沿用同一套「每 (模式, 轮次, 波位)」的血量 / 积分系数，
-     所以未单独录入的期次一律回退到本表（MX_REAL_UNIVERSAL），不再走公式估算。 */
-const MX_REAL_HP = (typeof MATRIX_REAL_HP !== "undefined") ? MATRIX_REAL_HP : {};
-const MX_REAL_META = (typeof MATRIX_REAL_META !== "undefined") ? MATRIX_REAL_META : {version:"—", src:"—"};
-/* 通用表 = MATRIX_REAL_CURRENT 所指期次的那张表（当前以第七期实测数据为基准）。
-   任何期次查不到自己的表时都用它。 */
-const MX_REAL_KEY = (()=>{
-  const c = (typeof MATRIX_REAL_CURRENT !== "undefined") ? (MATRIX_REAL_CURRENT||{}).cycle : null;
-  if(c!=null && MX_REAL_HP[String(c)]) return String(c);
-  const ks = Object.keys(MX_REAL_HP);
-  return ks.length ? ks[0] : null;
-})();
-const MX_REAL_UNIVERSAL = MX_REAL_KEY!=null ? (MX_REAL_HP[MX_REAL_KEY] || null) : null;
+/* Identity-matched HP; mappings are inferred and later rounds are labelled projections. */
+const MX_MATCHED_HP = typeof MATRIX_MATCHED_HP !== "undefined" ? MATRIX_MATCHED_HP : {};
+const MX_MATCHED_HP_META = typeof MATRIX_MATCHED_HP_META !== "undefined" ? MATRIX_MATCHED_HP_META : {};
+const MATRIX_HP_SCHEMA = 2;
 
 const LS_KEY = "wuwa-matrix-planner-v3";
 
@@ -1034,6 +1022,7 @@ function repairLoadedIds(data){
 function mkBossFromStage(b){
   return {
     uid:nid(),
+    monsterId:b.monsterId,
     wid: b.id,                                     // 该 BOSS 在当期配置里的波次 Id，用于关联解包血量
     name:b.name || "?",
     icon: b.iconUrl ? b.iconUrl : (b.icon ? MATRIX_ASSET + b.icon + ".webp" : ""),
@@ -1046,75 +1035,49 @@ function mkMonster(m){
 }
 function blankEnemy(){ return {uid:nid(), name:"", icon:"", res:[], chest:false}; }
 
-/* 取某一期的「实测血量表」（按 cycle 索引）。
-   ★ 实测表是通用的：该期若未单独录入，就回退到通用表（各期沿用同一套每波血量）。 */
+/* Never borrow another cycle's table. Both stage and cycle must match. */
 function realTableForStage(stage){
-  const cyc = stage && stage.cycle && stage.cycle.id;
-  if(cyc!=null && MX_REAL_HP[String(cyc)]) return MX_REAL_HP[String(cyc)];
-  return MX_REAL_UNIVERSAL;
+  const cycle=stage?.cycle?.id, table=MX_MATCHED_HP[String(cycle)];
+  return table && String(table[stage.mode+"Id"])===String(stage.id) ? table : null;
 }
+
 /* 名称归一化：把 nanoka 的异体字（万囮牢）对齐到实测表的写法（万囿牢），并去掉间隔号 */
 function normName(s){
   return String(s==null?"":s).replace(/囮/g,"囿").replace(/[·\s]/g,"");
 }
-/* 以 nanoka 的敌人条目为「壳」：名字 / 图标 / 抗性**全部用当前期次**的。
-   血量由通用（实测）表按「轮次 + 波位」提供（见 realWaveEntry）；
-   得分倍率则按固定口径由轮次算出（1200 血 = 1 分 × 轮次倍率，见 damegaRateOf）。
-   ★ 通用表**不带 BOSS 名字**，也**不要**用任何表里的名字覆盖当期名字——
-   一旦覆盖，切到别的期次（尤其在线爬取到新期次后）就会出现「名字是上一期、图标是当期」的错配。 */
-function realBossFrom(base, tw){
-  const b = mkBossFromStage(base);
-  b.name = String(b.name==null?"":b.name).replace(/囮/g,"囿");   // 显示统一异体字
-  if(tw && tw.chest) b.chest = true;                            // 奇藏标记按波位借通用表
+/* Keep identity, artwork and names from this stage; HP entries only supply numbers. */
+function realBossFrom(base){
+  const b=mkBossFromStage(base);
+  b.name=String(b.name||"").replace(/囮/g,"囿");
   return b;
 }
-
-/* 从 stage 配置生成默认波次。
-   若该期有实测血量表，则**按实测表的轮次**展开波次
-   （nanoka 只存前几轮模板，实测表可以更长，例如第七期奇点扩张有 8 轮）；
-   否则沿用旧逻辑：按 BOSS 循环自动切分轮次。 */
 function wavesFromStage(stage){
-  const list = (stage && stage.waves) || [];
+  const list=stage?.waves||[], table=realTableForStage(stage);
   if(!list.length) return [];
-  let cycleLen = list.length;
-  const seen = {};
-  for(let i=0;i<list.length;i++){
-    const k = (list[i].icon||"") + "|" + (list[i].name||"");
-    if(seen[k]!=null){ cycleLen = i; break; }
-    seen[k] = i;
+  if(table){
+    const byId=new Map(list.map(b=>[String(b.id),b]));
+    const rounds=stage.mode==="steady"?[table.steady]:table.singularity?.rounds||[];
+    return rounds.flatMap(rd=>(rd?.waves||[]).map(group=>({
+      id:nid(),round:Number(rd.round),
+      enemies:group.enemies.map(entry=>{
+        const base=byId.get(String(entry.wid));
+        return base && String(base.monsterId)===String(entry.mid) ? realBossFrom(base) : null;
+      }).filter(Boolean),
+    })).filter(w=>w.enemies.length));
   }
-  if(cycleLen<=0) cycleLen = list.length;
-
-  const rt = realTableForStage(stage);
-  if(rt){
-    const tpl = list.slice(0, cycleLen);
-    const pick = i => tpl[i % tpl.length] || tpl[0];
-    if((stage.mode==="steady") && rt.steady){
-      return (rt.steady.waves||[]).map((tw,si)=>({
-        id:nid(), round:Number(rt.steady.round)||0,
-        enemies:[ realBossFrom(pick(si), tw) ],
-      }));
-    }
-    if((stage.mode!=="steady") && rt.singularity){
-      const out = [];
-      (rt.singularity.rounds||[]).forEach(rd=>{
-        (rd.waves||[]).forEach((tw,si)=>{
-          out.push({
-            id:nid(), round:Number(rd.round)||1,
-            enemies:[ realBossFrom(pick(si), tw) ],
-          });
-        });
-      });
-      if(out.length) return out;
-    }
-  }
-
-  return list.map((b,i)=>({
-    id:nid(),
-    round: Math.floor(i/cycleLen)+1,
-    enemies:[ mkBossFromStage(b) ],
-  }));
+  // Unsupported early/new stages retain a clearly labelled fallback estimate.
+  const metadata=MX_WAVEHP[String(stage.id)]||{}, seen=new Set();
+  let round=stage.mode==="steady"?0:1;
+  return list.map(b=>{
+    const meta=metadata[String(b.id)], key=String(b.monsterId);
+    if(stage.mode!=="steady" && !meta?.ml && seen.has(key)){round++;seen.clear();}
+    seen.add(key);
+    const raw=(typeof MATRIX_WAVE_HP!=="undefined")?MATRIX_WAVE_HP[String(stage.id)]?.[String(b.id)]:null;
+    // Known stages are grouped by the generated table; this path only serves unsupported data.
+    return {id:nid(),round:stage.mode==="steady"?0:(raw?.ml>=120?3:raw?.ml>=110?2:round),enemies:[realBossFrom(b)]};
+  });
 }
+
 
 /* =========================================================================
    载入期次 / 爬取
@@ -1338,50 +1301,49 @@ function waveMeta(w){
   const e = (w.enemies||[]).find(x=>x && x.wid!=null);
   return e ? (s[String(e.wid)] || null) : null;
 }
-/* ---- 实测血量（优先） ----
-   实测表是通用的：**只提供生命值**（+ 奇藏标记与击破固定分），不走「等级曲线 × 轮次倍率」估算；
-   得分倍率是固定口径（1200 血 1 分 × 轮次倍率），不再从表里读积分系数。
-   查找键为 (模式, 轮次, 波位)——表里没有名字，所以**只按波位对齐**
-   （因为同一 R 内各 BOSS 血量一致，换一期即使 BOSS 名字不同也应对上同一套血量）。
-   当前期次若没有自己的表，就回退到通用表 MX_REAL_UNIVERSAL。 */
+/* Resolve each enemy by stage, round, original wave id and monster id. */
 function realTable(){
-  const cyc = state.period && state.period.cycle && state.period.cycle.id;
-  if(cyc!=null && MX_REAL_HP[String(cyc)]) return MX_REAL_HP[String(cyc)];
-  return MX_REAL_UNIVERSAL;
+  const stage=MX_STAGES[String(state.stageId)];
+  if(!stage || String(stage.cycle?.id)!==String(state.period?.cycle?.id) || stage.mode!==state.mode) return null;
+  return realTableForStage(stage);
 }
-/* 该波在「同一轮次内」的序位（0 起）；通用表就按这个「波位」对齐（表里不带 BOSS 名字） */
 function waveSlotInRound(w){
-  const same = state.waves.filter(x=>(Number(x.round)||0)===(Number(w.round)||0));
-  const i = same.indexOf(w);
-  return i >= 0 ? i : 0;
+  return state.waves.filter(x=>Number(x.round)===Number(w.round)).indexOf(w);
 }
-/* 取该波在通用（实测）表里对应的数值条目：**只按「轮次 + 波位」匹配，不比名字**。
-   因为各期 BOSS 名字不同（同一 R 内数值一致），用波位对齐才能让任何一期都对上同一套血量。 */
+function matchedEnemyHp(w,e){
+  const table=realTable();
+  if(!table || !e?.name || e.wid==null) return null;
+  const stage=MX_STAGES[String(state.stageId)];
+  const origin=stage.waves.find(b=>String(b.id)===String(e.wid));
+  if(!origin || e.monsterId!=null && String(e.monsterId)!==String(origin.monsterId)) return null;
+  const mid=String(origin.monsterId);
+  const rd=state.mode==="steady"?table.steady:table.singularity?.rounds.find(r=>Number(r.round)===Number(w.round));
+  if(!rd || Number(rd.round)!==Number(w.round)) return null;
+  const entries=(rd.waves||[]).flatMap(g=>g.enemies);
+  const exact=entries.find(r=>String(r.wid)===String(e.wid)&&String(r.mid)===mid);
+  if(exact) return exact;
+  // Legacy plans reused first-round ids; accept only an unambiguous monster match.
+  const matches=entries.filter(r=>String(r.mid)===mid);
+  return matches.length && matches.every(r=>r.hp===matches[0].hp) ? matches[0] : null;
+}
 function realWaveEntry(w){
-  const tbl = realTable();
-  if(!tbl) return null;
-  if(!(w.enemies||[]).some(e=>e && e.name)) return null;   // 空波次不取表
-  const slot = waveSlotInRound(w);
-  if(state.mode==="steady"){
-    const arr = (tbl.steady && tbl.steady.waves) || [];
-    return arr[slot] || null;
-  }
-  const rounds = (tbl.singularity && tbl.singularity.rounds) || [];
-  const rd = rounds.find(r=>Number(r.round)===Number(w.round));
-  if(!rd) return null;
-  return (rd.waves||[])[slot] || null;
+  const alive=(w.enemies||[]).filter(e=>e?.name);
+  const entries=alive.map(e=>matchedEnemyHp(w,e));
+  if(!entries.length || entries.some(e=>!e)) return null;
+  return {hp:entries.reduce((sum,e)=>sum+e.hp,0),kill:entries.reduce((sum,e)=>sum+e.kill,0),chest:entries.some(e=>e.chest),
+    status:entries.some(e=>e.status==="projected")?"projected":entries.some(e=>e.status==="configured-estimate")?"configured-estimate":"player-measured"};
 }
-/* 该期实测表里的轮次范围（用于限制「轮次」输入框） */
 function realRoundRange(){
-  const tbl = realTable();
-  if(!tbl) return null;
-  if(state.mode==="steady") return {min:0, max:0, count:1};   // 稳态协议固定 r0
-  const rounds = (tbl.singularity && tbl.singularity.rounds) || [];
-  if(!rounds.length) return null;
-  const nums = rounds.map(r=>Number(r.round)).filter(n=>!isNaN(n));
-  return {min:Math.min.apply(null,nums), max:Math.max.apply(null,nums), count:rounds.length};
+  const table=realTable();if(!table) return null;
+  if(state.mode==="steady") return {min:0,max:0,count:1};
+  const rounds=table.singularity?.rounds||[];
+  return rounds.length?{min:Math.min(...rounds.map(r=>r.round)),max:Math.max(...rounds.map(r=>r.round)),count:rounds.length}:null;
 }
-/* 等级成长曲线：以 Lv100 归一到 1.0（取自 monsterpropertygrowth CurveId 3001） */
+function hpSourceLabel(entry){
+  return entry?.status==="player-measured"?"已有实测":entry?.status==="projected"?"后续推算":entry?"配置推算":"未匹配估算";
+}
+
+/* 等级成长曲线：以 Lv100 归一到 1.0（取自 monsterpropertygrowth CurveId 0） */
 function levelRatio(ml){
   const r = MX_HPCURVE[String(ml)];
   const r100 = MX_HPCURVE["100"];
@@ -1394,18 +1356,20 @@ function roundHpMult(round){
   const r = Math.max(1, Number(round)||1);
   return r<=m.length ? m[r-1] : m[m.length-1] * Math.pow(2, r-m.length);
 }
-/* 单只 BOSS 血量：优先取实测表，其次按 基准 × 等级曲线 × 轮次倍率 估算 */
-function enemyHpOf(w){
-  const rw = realWaveEntry(w);
-  if(rw && rw.hp!=null) return Number(rw.hp);
-  const meta = waveMeta(w);
-  const ml = (meta && meta.ml!=null) ? meta.ml : (state.period.monsterLevel||100);
-  return (MX_HPMETA.baseHp||5000000) * levelRatio(ml) * roundHpMult(w.round);
+/* Configured HP is per enemy; a cluster's wave HP is the sum of its members. */
+function enemyHpOf(w, enemy){
+  const e=enemy||(w.enemies||[]).find(e=>e?.name);
+  if(!e) return 0;
+  const entry=matchedEnemyHp(w,e);
+  if(entry) return entry.hp;
+  const meta=(MX_WAVEHP[String(state.stageId)]||{})[String(e.wid)];
+  const ml=meta?.ml||state.period.monsterLevel||100;
+  return (MX_HPMETA.baseHp||5000000)*levelRatio(ml)*roundHpMult(w.round);
 }
 function waveHp(w){
-  const alive = (w.enemies||[]).filter(e=>e && e.name);
-  return alive.reduce((a)=>a+enemyHpOf(w),0);
+  return (w.enemies||[]).filter(e=>e?.name).reduce((sum,e)=>sum+enemyHpOf(w,e),0);
 }
+
 function waveHasChest(w){ return (w.enemies||[]).some(e=>e && e.name && e.chest); }
 /* ---- 终焉矩阵得分口径（玩家给定，权威；别再改回按整数的「积分系数」折算） ----
    基础：**1200 血 = 1 分**；再乘「轮次得分倍率」：
@@ -2295,10 +2259,8 @@ function waveDetailHTML(w, idx){
     <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
       <span style="font-size:10.5px;color:var(--muted);font-weight:700">轮次</span>
       <span class="wave-mult">R${w.round}</span>
-      ${rw
-        ? `<span class="wave-mult" title="得分倍率：1200 血 = 1 分，×轮次倍率${waveHasChest(w)?"，奇藏再 ×1.1":""}">倍率 ×${scoreMultOf(w).toFixed(2)}</span>`
-        : `<span class="wave-mult" title="得分倍率：1200 血 = 1 分，×轮次倍率${waveHasChest(w)?"，奇藏再 ×1.1":""}">倍率 ×${scoreMultOf(w).toFixed(2)}</span>
-           <span class="wave-mult hp" title="血量 = 基准 × 等级曲线 × 轮次倍率">血 ×${roundHpMult(w.round).toFixed(2)}</span>`}
+      <span class="wave-mult">倍率 ×${scoreMultOf(w).toFixed(2)}</span>
+      <span class="wave-mult hp" title="配置血量由基础生命与成长曲线计算，映射仍待实服核对；后续推算使用本期 R3 基准">${hpSourceLabel(rw)}</span>
       <div style="flex:1"></div>
     </div>
     <div class="wave-enemies" style="padding:0;min-height:0">
@@ -2567,7 +2529,10 @@ function openBossDialog(wid,ei,stageBossId){
   BOSS_DIALOG={focus:document.activeElement};
   const sim=simOf(),left=wave?Math.max(0,sim.hp[wave.id]):null;
   const info=[['属性抗性',(enemy.res||[]).join(' / ')||'均衡'],['敌人类型',enemy.chest?'奇藏 BOSS':'矩阵 BOSS'],['关卡等级',state.period.monsterLevel??'未提供']];
-  if(wave) info.push(['当前轮次','R'+wave.round],['本轮总血量',fmt(waveHp(wave))],['剩余血量',fmt(left)],['可提供积分',fmt(wavePotential(wave))+' 分'],['击破额外得分',fmt(killScoreOf(wave))+' 分']);
+  const hpEntry=wave?matchedEnemyHp(wave,enemy):null;
+  if(wave) info.push(['单体血量',fmt(enemyHpOf(wave,enemy))],['血量依据',hpSourceLabel(hpEntry)]);
+  if(hpEntry) info[2]=['关卡等级',hpEntry.level];
+  if(wave) info.push(['当前轮次' ,'R'+wave.round],['本轮总血量',fmt(waveHp(wave))],['剩余血量',fmt(left)],['可提供积分',fmt(wavePotential(wave))+' 分'],['击破额外得分',fmt(killScoreOf(wave))+' 分']);
   const image=enemy.icon?`<img src="${esc(enemy.icon)}" alt="${esc(enemy.name)}" onerror="if(!resourceImageError(this)){this.hidden=true;this.nextElementSibling.hidden=false}"><span hidden>暂无大图</span>`:'<span>暂无大图</span>';
   document.getElementById('bossDialogBody').innerHTML=`<div class="boss-large-art">${image}</div><div class="boss-info"><span class="boss-eyebrow">MATRIX / BOSS</span><h2 id="bossDialogTitle">${esc(enemy.name)}</h2><p>${esc(state.period.label||'当期矩阵')}</p><dl>${info.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(String(value))}</dd></div>`).join('')}</dl></div>`;
   document.getElementById('bossDlg').hidden=false;
@@ -2595,10 +2560,11 @@ function countKilled(sim){
 }
 function eSlotHTML(w, e, ei){
   if(!e || !e.name) return "";
-  const hp = enemyHpOf(w);
+  const hp = enemyHpOf(w,e);
   const sim = simOf();
   let left = hp;
   if((w.enemies||[]).filter(x=>x&&x.name).length===1) left = sim.hp[w.id];
+  else left = hp * Math.max(0,sim.hp[w.id]) / Math.max(1,waveHp(w));
   const dead = left <= 1e-6;
   return `<div class="eSlot filled" role="button" tabindex="0" data-boss-wave="${w.id}" data-boss-index="${ei}" data-wid="${w.id}" data-ei="${ei}" title="${esc(e.name)}${e.res&&e.res.length?(" · "+e.res.join("/")+"抗性"):" · 抗性均衡"}${e.chest?" · 积分 BOSS（倍率 ×"+scoreMultOf(w).toFixed(2)+"｜击破 +"+killScoreOf(w)+"）":""} · 血量 ${fmt(hp)}${dead?" · 已击破":" · 剩余 "+fmt(left)}">
     ${avatarHTML(e.icon, e.name)}
@@ -2794,11 +2760,11 @@ function renderSettings(){
   const rt = realTable();
   const head = $("#hpSourceHead"), body = $("#hpSourceBody"), note = $("#hpSourceNote");
   if(rt){
-    if(head) head.textContent = "血量来源：玩家测量数据。";
+    if(head) head.textContent = "血量：按当期 BOSS 匹配。";
     if(body) body.textContent = "击破奇藏额外 +1,000 分。";
-    if(note) note.setAttribute("title", "数据来源：" + (MX_REAL_META.src || "—"));
+    if(note) note.setAttribute("title", "配置血量为推算值；后续轮次单独标记。来源：" + (MX_MATCHED_HP_META.src||"—"));
   }else{
-    if(head) head.textContent = "血量来源：游戏解包数据。";
+    if(head) head.textContent = "血量：该期尚无匹配配置，使用估算。";
     if(body) body.textContent = "击破奇藏额外 +1,000 分。";
     if(note) note.setAttribute("title", "数据来源：" + (MX_HPMETA.src || "—"));
   }
@@ -2905,10 +2871,10 @@ function save(){
   syncTeamNames();
   try{
     localStorage.setItem(LS_KEY, JSON.stringify({
-      mode:state.mode, stageId:state.stageId,
+      mode:state.mode, stageId:state.stageId, matrixHpSchema:MATRIX_HP_SCHEMA,
       fatigueLimit:state.fatigueLimit, specialId:state.specialId,
       teams: state.teams.map(t=>({id:t.id,name:t.name,members:t.members.map(m=>m?m.id:null),roleConfigs:serializeRoleConfigs(t),buff:t.buff,waves:t.waves,score:t.score,on:t.on})),
-      waves: state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid}))})),
+      waves: state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid,monsterId:e.monsterId}))})),
     }));
   }catch(e){}
 }
@@ -2926,8 +2892,8 @@ function load(options={}){
     state.specialId=d.specialId||state.special||"";
     state.teams=(d.teams||[]).map(t=>({id:t.id,name:t.name,members:(t.members||[null,null,null]).map(id=>id?CH_INDEX[id]||null:null),roleConfigs:cleanRoleConfigs(t.roleConfigs),buff:t.buff||"",waves:t.waves??1,score:Math.max(0,Number(t.score)||0),on:t.on!==false}));
     syncTeamNames();
-    state.waves=(d.waves||[]).map(w=>({id:w.id,round:w.round||1,enemies:(w.enemies||[]).map(e=>({uid:nid(),wid:e.wid,name:e.name||"",icon:e.icon||"",res:e.res||[],chest:!!e.chest}))}));
-    if(resetPeriod) {state.waves=wavesFromStage(MX_STAGES[sid]);autoSplitWaves();}
+    state.waves=(d.waves||[]).map(w=>({id:w.id,round:w.round||1,enemies:(w.enemies||[]).map(e=>({uid:nid(),wid:e.wid,monsterId:e.monsterId,name:e.name||"",icon:e.icon||"",res:e.res||[],chest:!!e.chest}))}));
+    if(resetPeriod || d.matrixHpSchema!==MATRIX_HP_SCHEMA) {state.waves=wavesFromStage(MX_STAGES[sid]);autoSplitWaves();}
     const buffIds=new Set(state.buffs.map(b=>b.id));state.teams.forEach(t=>{if(t.buff&&!buffIds.has(t.buff))t.buff="";});
     return state.teams.length>0;
   }catch(e){ return false; }
@@ -2942,8 +2908,10 @@ function syncModeTabs(){
   });
 }
 function defaultStateFor(mode){
-  mode="singularity";
-  const sid = MX_CUR.singularity;
+  /* ⚠️ 这里曾被写成 mode="singularity"; const sid=MX_CUR.singularity;——
+     结果切到「稳态协议」也会加载奇点扩张（40 波、队伍上限 0）。必须按传入的 mode 取对应 stage。 */
+  if(mode !== "steady") mode = "singularity";
+  const sid = MX_CUR[mode] || MX_CUR.singularity;
   state = blankState();
   if(sid && MX_STAGES[String(sid)]){
     applyStage(sid, {source:"内置数据 " + MX_VER, online:false, resetWaves:true});
@@ -3030,10 +2998,10 @@ document.addEventListener("keydown", ev=>{
 function exportPayload(){
   syncTeamNames();
   return {
-    mode:state.mode, stageId:state.stageId,
+    mode:state.mode, stageId:state.stageId, matrixHpSchema:MATRIX_HP_SCHEMA,
     fatigueLimit:state.fatigueLimit,specialId:state.specialId,
     teams:state.teams.map(t=>({id:t.id,name:t.name,members:t.members.map(m=>m?m.id:null),roleConfigs:serializeRoleConfigs(t),buff:t.buff,waves:t.waves,score:t.score,on:t.on})),
-    waves:state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid}))})),
+    waves:state.waves.map(w=>({id:w.id,round:w.round,enemies:w.enemies.map(e=>({name:e.name,icon:e.icon,res:e.res,chest:e.chest,wid:e.wid,monsterId:e.monsterId}))})),
   };
 }
 $("#btnExport").onclick = () => {
