@@ -1,7 +1,7 @@
 {
   "index.html": {
-    "bytes": 215384,
-    "sha256": "debd9a1dad6b73263f1ca69c5cfcd0daf0dbc045905f42058fc90bdb529807dc"
+    "bytes": 215479,
+    "sha256": "2ee9cbadd180f5dd4cd3444d226e7eafcff67e2658392337a62fc0b3f34129ef"
   },
   "_headers": {
     "bytes": 149,
@@ -96,8 +96,8 @@
     "sha256": "9cafa0b758605bec43c7900871967ad6e50e7ab22e29268cb47e7ca1d8e2a47e"
   },
   "styles/interface.css": {
-    "bytes": 19779,
-    "sha256": "c52177f6da96657b26fe7fa9377730b7c46f77addc8d6ba75040c3a633435dd2"
+    "bytes": 20020,
+    "sha256": "4ffcaa167303725bedb10b9bd5fe8668718fdae6c1f2e68b32c82cce7679cda4"
   },
   "styles/matrix-panel.css": {
     "bytes": 5101,
@@ -2375,6 +2375,10 @@
     "bytes": 29416,
     "sha256": "84efb81dee01986cbfd1eb1080342d7a0bb5a971d065a4e6d2332811e20102b6"
   },
+  "assets/matrix/matrix-emblem.webp": {
+    "bytes": 1540,
+    "sha256": "3393d0b84f4d68fab3ed8b58a171dba22e212cc599aab70048d6251e51d5bea8"
+  },
   "assets/matrix/T_Boss_01.webp": {
     "bytes": 57086,
     "sha256": "909db8ce2fab631a1743c394e68252c73ffb75ecc4194c942ae7fd05df5ef2c6"
@@ -3050,6 +3054,10 @@
   "third_party/cloudbase/LICENSE": {
     "bytes": 12575,
     "sha256": "92d7d7d2d4771b84f44e38dc59052faae8e3cd0a234a62de6180a1c6746c979e"
+  },
+  "third_party/matrix-emblem.md": {
+    "bytes": 444,
+    "sha256": "11a4555b9875546b890650723962105715be3490876074ba9b00c39fb8999497"
   },
   "third_party/resource_sources/NOTICE.md": {
     "bytes": 832,
