@@ -2508,8 +2508,8 @@
     "sha256": "1f777db2e8378e6b7031935f52c235eefbafe476644c27e1f5f826a9f14fa09b"
   },
   "assets/vendor/cloudbase-3.4.8.js": {
-    "bytes": 520183,
-    "sha256": "a2d6a06bedcf4a7dbaf4b5f47858d470da3c99f1a14383d688e1ba1f3e1006e7"
+    "bytes": 741634,
+    "sha256": "1d7e8199be6c4f9c65c2a650bdbedb4aaed0f3bdef86164191462b3d8e455114"
   },
   "assets/weapon/21010011.webp": {
     "bytes": 12136,
@@ -3044,8 +3044,8 @@
     "sha256": "abefc18ee32450bd1a7403fb1a0d73f8e9a934a72b0d8071d68d27e9c2fc550c"
   },
   "third_party/cloudbase/dependencies.md": {
-    "bytes": 831,
-    "sha256": "9eb600a5ef5c45f26e3445eabd5cb4562c4d97e2483ce4642467c1a6fb0d278d"
+    "bytes": 1303,
+    "sha256": "46cd2bd83fb5374f3e1dfbb579cf550e8c2a77d05ca0981455ec4479ff23e08c"
   },
   "third_party/cloudbase/LICENSE": {
     "bytes": 12575,
@@ -3084,7 +3084,7 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 39216,
-    "sha256": "975ec2304bb913520adf555646eb3cf52654e88812095102bda8f4831dc2f9a9"
+    "bytes": 39631,
+    "sha256": "c6084367a8a19593adbc911bed211027cef436ac81d7b67522d008c4c22222df"
   }
 }
