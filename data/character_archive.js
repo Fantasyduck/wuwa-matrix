@@ -1,0 +1,28 @@
+/* Read-only public resonator pages. Selection does not modify team configuration. */
+(()=>{
+  let tab='overview',skillIndex=0,skillLevel=10,chainLevel=0,statsLevel='90';
+  const page=document.getElementById('characterPageBody');
+  const fill=(text,params=[])=>String(text||'').replace(/\{(\d+)\}/g,(all,index)=>{const p=params[Number(index)];return p==null?all:String(Array.isArray(p)?p[Math.min(skillLevel-1,p.length-1)]:p).replace(/<[^>]*>/g,'');});
+  const prose=(text,params)=>esc(fill(text,params)).replace(/\n/g,'<br>');
+  window.renderCharacterArchive=()=>{
+    const id=window.ARCHIVE_CHARACTER_ID,c=CH_INDEX[id],detail=typeof CHARACTER_DETAILS!=='undefined'?CHARACTER_DETAILS[id]:null;
+    if(!c){page.innerHTML='<p>未找到该共鸣者。</p>';return;}
+    const art=detail?.art||charIcon(c),stats=detail?.stats?.[statsLevel]||{},skills=detail?.skills||[],chains=detail?.chains||[];
+    const skill=skills[Math.min(skillIndex,Math.max(0,skills.length-1))];
+    const facts=detail?.info||{};
+    page.innerHTML=`<div class="resonator-hero" style="--resonator-color:${EL_COLOR[c.element]||'#8a73a2'}"><img class="resonator-backdrop" src="${esc(art)}" alt=""><div class="resonator-art"><img src="${esc(art)}" alt="${esc(characterLabel(c))}"></div><div class="resonator-heading"><span class="page-eyebrow">RESONATOR / 共鸣者</span><small>${esc(detail?.nickname||'')}</small><h1 id="characterPageTitle">${esc(characterLabel(c))}</h1><p class="resonator-stars">${'★'.repeat(c.rank)}</p><div class="resonator-meta"><span>${esc(c.element)}</span><span>${esc(c.weapon)}</span><span>${esc(facts.Country||'')}</span></div><p>${prose(detail?.desc||'暂无简介')}</p></div></div>
+      <div class="resonator-tabs" role="group" aria-label="角色资料分类">${[['overview','角色资料'],['skills','技能信息'],['chains','共鸣链']].map(([v,name])=>`<button type="button" data-character-tab="${v}" aria-pressed="${tab===v}">${name}</button>`).join('')}</div>
+      <div class="resonator-content">${!detail?'<div class="resonator-empty">该角色的固定版本资料暂未收录。</div>':tab==='overview'?`<section class="resonator-overview"><div class="resonator-section-heading"><h2>基础面板</h2><div>${['1','90'].map(level=>`<button type="button" data-stats-level="${level}" aria-pressed="${statsLevel===level}">Lv.${level}</button>`).join('')}</div></div><div class="resonator-stat-grid">${[['Life','生命'],['Atk','攻击'],['Def','防御']].map(([key,name])=>`<div><small>${name}</small><b>${stats[key]==null?'—':fmt(Math.round(stats[key]))}</b></div>`).join('')}</div><p class="resonator-source-note">角色基础属性，不含武器、声骸或队伍增益。</p><dl class="resonator-facts">${[['Birth','生日'],['Influence','所属'],['TalentName','异能力'],['CVNameCn','中文配音']].filter(([key])=>facts[key]).map(([key,label])=>`<div><dt>${label}</dt><dd>${esc(facts[key])}</dd></div>`).join('')}</dl></section>`:tab==='skills'?`<div class="resonator-skill-layout"><div class="resonator-skill-nav">${skills.map((s,i)=>`<button type="button" data-skill-index="${i}" aria-pressed="${i===skillIndex}"><small>${esc(s.type)}</small><b>${esc(s.name)}</b></button>`).join('')}</div><section class="resonator-skill-detail"><div class="resonator-section-heading"><div><span>${esc(skill?.type||'')}</span><h2>${esc(skill?.name||'暂无技能')}</h2></div><label class="skill-level-control">技能等级 <output>${skillLevel}</output><input id="archiveSkillLevel" type="range" min="1" max="10" value="${skillLevel}" aria-label="技能等级"></label></div><div class="resonator-prose">${prose(skill?.desc,skill?.param)}</div>${skill?.levels?.length?`<details class="skill-multipliers" open><summary>技能倍率 · Lv.${skillLevel}</summary><dl>${skill.levels.map(row=>`<div><dt>${esc(row.name)}</dt><dd>${row.param.map(p=>esc(Array.isArray(p)?p[Math.min(skillLevel-1,p.length-1)]??'—':p)).join(' / ')}</dd></div>`).join('')}</dl></details>`:''}</section></div>`:`<section class="resonator-chain-section"><div class="resonator-section-heading"><h2>共鸣链</h2><div class="chain-steps" role="group" aria-label="预览共鸣链等级">${[0,1,2,3,4,5,6].map(n=>`<button type="button" data-chain-level="${n}" aria-pressed="${chainLevel===n}">${n}</button>`).join('')}</div></div><p class="resonator-source-note">点选等级查看解锁节点，仅用于图鉴预览。</p><div class="chain-grid">${chains.map(node=>`<article class="chain-card ${node.level<=chainLevel?'unlocked':''}"><span class="chain-number">${node.level}</span><div><small>共鸣链 · ${node.level}</small><h3>${esc(node.name)}</h3><p>${prose(node.desc,node.param)}</p></div></article>`).join('')}</div></section>`}</div><p class="resonator-source-note">固定中文资料 · 3.7.8</p>`;
+  };
+  page.addEventListener('click',e=>{
+    const t=e.target.closest('[data-character-tab]'),s=e.target.closest('[data-skill-index]'),chain=e.target.closest('[data-chain-level]'),stats=e.target.closest('[data-stats-level]');
+    if(t)tab=t.dataset.characterTab;if(s)skillIndex=Number(s.dataset.skillIndex);if(chain)chainLevel=Number(chain.dataset.chainLevel);if(stats)statsLevel=stats.dataset.statsLevel;
+    if(t||s||chain||stats)window.renderCharacterArchive();
+  });
+  page.addEventListener('change',e=>{if(e.target.id==='archiveSkillLevel'){skillLevel=Number(e.target.value);window.renderCharacterArchive();}});
+  page.addEventListener('input',e=>{if(e.target.id==='archiveSkillLevel')e.target.parentElement.querySelector('output').value=e.target.value;});
+  document.getElementById('characterBack').onclick=()=>window.matrixNavigate('library');
+  let prior='';const render=window.renderCharacterArchive;
+  window.renderCharacterArchive=()=>{if(prior!==window.ARCHIVE_CHARACTER_ID){prior=window.ARCHIVE_CHARACTER_ID;tab='overview';skillIndex=0;skillLevel=10;chainLevel=0;statsLevel='90';}render();};
+  if(document.body.dataset.workspace==='character')window.renderCharacterArchive();
+})();

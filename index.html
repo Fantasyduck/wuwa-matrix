@@ -762,9 +762,6 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   </div>
   <div class="spacer"></div>
   <div class="hbtns">
-    <button class="btn" id="btnCrawl" title="从 nanoka + 解包仓库实时拉取当期增幅回路与 BOSS 信息（失败时回退内置数据）">⟳ 更新当期数据</button>
-    <button class="btn secondary" id="btnKuro" title="用库街区 token 登录，导入账号信息与「已拥有」角色">库街区</button>
-    <button class="btn secondary" id="btnProfile">个人中心</button>
     <button class="btn secondary" id="btnClear" title="清空所有队伍与波次编排（不影响期次数据）">重置编排</button>
     <button class="btn secondary" id="btnExport">导出配置</button>
     <button class="btn secondary" id="btnImport">导入配置</button>
@@ -857,7 +854,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <section id="libraryPage" class="library-page" hidden aria-labelledby="libraryTitle">
   <div class="library-hero"><div><span class="page-eyebrow">ARCHIVE / 鸣潮图鉴</span><h1 id="libraryTitle">共鸣档案</h1><p>从共鸣者到武器，探索你的下一套搭配。</p><div class="library-counts"><span>64 <small>共鸣者</small></span><span>133 <small>武器</small></span></div></div><div class="library-hero-art" aria-hidden="true"><img src="assets/char/1501.webp" alt=""><img src="assets/char/1502.webp" alt=""><img src="assets/char/1307.webp" alt=""></div></div>
   <div class="library-toolbar"><div class="library-tabs" role="group" aria-label="图鉴分类"><button type="button" data-library-kind="character" aria-pressed="true">共鸣者</button><button type="button" data-library-kind="weapon" aria-pressed="false">武器</button><button type="button" data-library-kind="boss" aria-pressed="false">矩阵 BOSS</button></div><input id="librarySearch" class="field" type="search" placeholder="搜索名称…" aria-label="搜索图鉴"></div>
-  <div class="library-filter-row"><select id="libraryFilter" class="field" aria-label="属性或武器类型"></select><select id="libraryRarity" class="field" aria-label="稀有度"><option value="">全部星级</option><option value="5">五星</option><option value="4">四星</option><option value="3">三星</option></select><span id="libraryResultsCount"></span></div>
+  <div class="library-filter-row"><div id="libraryFilter" class="archive-filter-chips" role="group" aria-label="属性或武器类型"></div><div id="libraryRarity" class="archive-filter-chips" role="group" aria-label="稀有度"></div><span id="libraryResultsCount"></span></div>
   <div id="libraryGrid" class="library-grid"></div><p class="library-source">固定版本资料 · 3.7 · 共鸣者与武器使用项目内置目录，图片随站点保存。</p>
 </section>
 <section id="personalPage" class="personal-page" hidden aria-labelledby="personalTitle"><div class="personal-heading"><span class="page-eyebrow">PERSONAL / 我的空间</span><h1 id="personalTitle">个人中心</h1><p>账号资料、实战战绩与自己的云方案。</p></div><div class="personal-game"><div id="personalAccountSummary"></div><button type="button" class="btn" id="personalKuro">库街区账号</button></div>    <details class="sec" id="accountMatrixSection">
@@ -870,8 +867,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
   <button type="button" data-workspace="personal"><span aria-hidden="true">◎</span>个人中心</button>
   <button type="button" id="workspaceNavHide" aria-label="收起导航" title="收起导航">⌄</button>
 </nav>
-<button type="button" id="hpPreviewShow" class="hp-preview-show" aria-controls="hpPreview" aria-expanded="false">▤ 血线预览</button>
-<aside id="hpPreview" class="hp-preview" hidden aria-label="实时血线预览"><div id="hpPreviewHandle" class="hp-preview-head"><b>血线预览 <small>实时</small></b><button type="button" id="hpPreviewClose" aria-label="收起血线预览">—</button></div><div id="hpPreviewBody"></div><button type="button" id="hpPreviewDetails">查看完整推演 ↗</button></aside>
+<section id="characterPage" class="character-page" hidden aria-labelledby="characterPageTitle"><div class="character-breadcrumb"><button type="button" id="characterBack">‹ 返回图鉴</button><span>共鸣者档案</span></div><div id="characterPageBody"></div></section>
 <div id="libraryDialog" class="library-dialog" hidden><section role="dialog" aria-modal="true" aria-labelledby="libraryDialogTitle"><button type="button" id="libraryDialogClose" aria-label="关闭图鉴详情">✕</button><div id="libraryDialogBody"></div></section></div>
 <button type="button" id="workspaceNavShow" class="workspace-nav-show" aria-label="展开分区导航" aria-expanded="false" aria-controls="workspaceNav" hidden>☰ 导航</button>
 <div id="poolScrim" hidden></div>
@@ -893,9 +889,11 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <div id="buffDlg" class="buff-dialog" hidden><section class="buff-dialog-card" role="dialog" aria-modal="true" aria-labelledby="buffDialogTitle"><div id="buffDialogBody"></div></section></div>
 <div id="bossDlg" class="boss-dialog" hidden><section class="boss-dialog-card" role="dialog" aria-modal="true" aria-labelledby="bossDialogTitle"><button id="bossDialogClose" class="boss-dialog-close" aria-label="关闭 BOSS 信息">✕</button><div id="bossDialogBody"></div></section></div>
 <script src="data/characters.js"></script>
+<script src="data/character_details.js"></script>
 <script src="data/character_tags.js"></script>
 <script src="data/character_portraits.js"></script>
 <script src="data/weapons.js"></script>
+<script src="data/weapon_details.js"></script>
 <script src="data/resource_assets.js"></script>
 <script src="data/echo_portraits.js"></script>
 <script src="data/resource_loader.js"></script>
@@ -1973,7 +1971,10 @@ function teamPreviewHTML(t, r, covered){
     const prev = idx>0 ? state.waves[idx-1] : null;
     const newRound = !!(prev && (Number(prev.round)||0)!==(Number(w.round)||0));
     const tnm = id => esc((findTeam(id)||{}).name||"");
-    return `<div class="wl">
+    const enemy=(w.enemies||[]).find(e=>e?.name), detail=typeof MATRIX_BOSS_DETAILS!=='undefined' && MATRIX_BOSS_DETAILS[String(state.stageId)]?.[String(enemy?.wid)];
+    const bossArt=detail?.background||detail?.art||enemy?.icon||'';
+    return `<div class="wl boss-wave-card">
+      ${bossArt?`<img class="wave-boss-backdrop" src="${esc(bossArt)}" alt="" loading="lazy">`:''}
       <div class="top">
         <span class="no">波 ${idx+1}·R${w.round}</span>
         ${newRound?`<span class="no" style="background:#b1650a" title="本波是本队的跨轮切入点">跨轮</span>`:""}
@@ -1986,7 +1987,7 @@ function teamPreviewHTML(t, r, covered){
           /* 颜色只认「队伍」，不认「是否击破」：同一队在每一波的伤害段恒用同一色，
              与总览血条、悬停高亮保持一致；本队是否收掉这波，交给右侧文字（已击破 / 残留）表达。 */
           const bg = segColorOf(s.team);
-          return `<span class="seg" style="width:${Math.min(100,s.damage/hp0*100)}%;background:${bg};${isMine?"":"opacity:.72"}" title="${tnm(s.team)}${isMine?"（本队）":""}：造成 ${fmt(s.damage)}"></span>`;
+          return `<span class="seg ${isMine?'damage-mine':'damage-other'}" style="width:${Math.min(100,s.damage/hp0*100)}%;background:${bg};" title="${tnm(s.team)}${isMine?"（本队）":""}：造成 ${fmt(s.damage)}"></span>`;
         }).join("") : ""}
         ${done ? "" : `<span class="rem"></span>`}
       </div>
@@ -2994,7 +2995,7 @@ $("#btnClear").onclick = () => {
   state.mode = mode;
   renderAll(); save();
 };
-$("#btnCrawl").onclick = () => crawlCurrent($("#btnCrawl"));
+
 
 /* ---- 角色库抽屉 / 手机「更多」菜单 ---- */
 const _btnPoolOpen = $("#btnPoolOpen");
@@ -3855,6 +3856,8 @@ function switchMatrixPeriod(id){
 <div id="teamPop" class="tpop" hidden></div>
 <script src="data/interface_motion.js"></script>
 <script src="data/workspace_nav.js"></script>
+<script src="data/character_archive.js"></script>
+<script src="data/weapon_archive.js"></script>
 <script src="data/cloud_config.js"></script>
 <script src="data/cloud_plans.js"></script>
 </body>

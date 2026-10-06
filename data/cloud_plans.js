@@ -128,7 +128,6 @@ function initProfile(){
   const root=document.createElement('section');root.id='profileDlg';root.hidden=false;root.setAttribute('aria-label','云方案账号');
   root.innerHTML='<div class="profile-card"><div id="profileBody"></div></div>';document.getElementById('cloudAccountSlot').appendChild(root);
   window.openPersonalCloud=()=>{renderProfile();cloudAction(async()=>{const {auth}=await cloudClient();const result=await auth.getUser();CLOUD.user=result.data?.user||null;if(CLOUD.user)await cloudRefresh();});};
-  document.getElementById('btnProfile').onclick=()=>window.matrixNavigate('personal');
   renderProfile();
   if(document.body.dataset.workspace==='personal')window.openPersonalCloud();
 }
