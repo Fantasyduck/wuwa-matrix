@@ -1,15 +1,15 @@
 {
   "index.html": {
-    "bytes": 222585,
-    "sha256": "d5360bf8c722371192d1122dedf24dfc4635e05bb66babb0eedb4142ddcbf1c8"
+    "bytes": 222658,
+    "sha256": "12ee230bf09bd36b396a21d574931ee44cbae438446477326ded7397c49020c4"
   },
   "_headers": {
     "bytes": 149,
     "sha256": "a528f15c79309137ca5d367ead3be86c3550942d1e1efd1379848bb6d71820f7"
   },
   "data/account_matrix.js": {
-    "bytes": 16942,
-    "sha256": "750e4051eee9e24d8dfb84e938b82f30f1a02babb708dca28e0d5574fdbcb6b1"
+    "bytes": 18022,
+    "sha256": "977f19a5ad4a7e6de7e8f2d370c7d2c2a655ad800bedc3cefd72d61f9f5ba35b"
   },
   "data/bosses.js": {
     "bytes": 15217,
@@ -75,6 +75,10 @@
     "bytes": 4627,
     "sha256": "fe935e1cb92d8e2090d11f679a6de050e3068a89169d1374a2d4b8a204e78f62"
   },
+  "data/matrix_record_import.js": {
+    "bytes": 5359,
+    "sha256": "60edda5076ffa1dc258a780bc7135eebee8f466712478afd4b934c436b9179ef"
+  },
   "data/monsters.js": {
     "bytes": 53649,
     "sha256": "7c20bb1f1fc291cbee4b541b7892c90a844d8354c5526aa4f827b113570c5c82"
@@ -124,8 +128,8 @@
     "sha256": "4ffcaa167303725bedb10b9bd5fe8668718fdae6c1f2e68b32c82cce7679cda4"
   },
   "styles/matrix-panel.css": {
-    "bytes": 13022,
-    "sha256": "0c7d523320bbd4ce404ee5fd34e6ce1f0442320b9fd71cf0860688227d6b8e1b"
+    "bytes": 13738,
+    "sha256": "505c6a4d9c282b1f3eb1d6e41c0f8bb8ee231dfe60f09f708d27a5bb426c3df8"
   },
   "styles/polish.css": {
     "bytes": 12441,
@@ -3540,11 +3544,11 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 43432,
-    "sha256": "c4697d36bd2c44cb9e5b5f66fd6f0266cbfdda25c95c930d833a696b35241724"
+    "bytes": 44499,
+    "sha256": "34910e07dd0b0088aa7915a190b3617ec66c94df98977a85188fd69e0d165622"
   },
   "release.json": {
     "bytes": 36,
-    "sha256": "208dfc55c026af9ed153305218c14728265a167392fa2b8ccd532d7e36f514fb"
+    "sha256": "6a2e227d23019ae8f9300efc80b192fa6801deb00ef94729a88e1bf708c061d6"
   }
 }
