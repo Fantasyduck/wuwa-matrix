@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="matrix-release" content="7131d74943cf6903">
+<meta name="matrix-release" content="34b5d0e679d8ae00">
 <meta name="matrix-sdk-version" content="3147288420c07cfe">
 <script>
 /* Kept inline so an older HTML entry can discover a new release independently of cached JS. */
@@ -784,7 +784,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <link rel="stylesheet" href="styles/echo-score.css?v=9cafa0b758605bec">
 <link rel="stylesheet" href="styles/boss-view.css?v=11159bd749b5657b">
 <link rel="stylesheet" href="styles/buff-picker.css?v=54cabcacf5533d70">
-<link rel="stylesheet" href="styles/matrix-panel.css?v=345de824802717e7">
+<link rel="stylesheet" href="styles/matrix-panel.css?v=0c7d523320bbd4ce">
 <link rel="stylesheet" href="styles/interface.css?v=4ffcaa167303725b">
 <link rel="stylesheet" href="styles/workspace-nav.css?v=82f973f97df14f58">
 </head>
@@ -939,7 +939,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <script src="data/echo_score_rules.js?v=e8ab3621bb95e453"></script>
 <script src="data/echo_score.js?v=ee42726ac12ec880"></script>
 <script src="data/role_config.js?v=15ee969eb8dd4db8"></script>
-<script src="data/account_matrix.js?v=8fb4d5634f878766"></script>
+<script src="data/account_matrix.js?v=750e4051eee9e24d"></script>
 <script src="data/monsters.js?v=7c20bb1f1fc291cb"></script>
 <script src="data/matrix.js?v=db6f2fcf32fa7d60"></script>
 <script src="data/matrix_hp.js?v=28467836f8747c65"></script>
@@ -3150,6 +3150,7 @@ async function kuroPostRaw(path, body, json, ms, detailHeaders){
     }
     const r = await fetch(KURO_API + path, {
       method:"POST", headers, credentials:"omit", redirect:"error", signal:ctl.signal,
+      ...(detailHeaders?.cache?{cache:detailHeaders.cache}:{}),
       body: json ? JSON.stringify(body) : new URLSearchParams(body).toString(),
     });
     const text = await r.text();

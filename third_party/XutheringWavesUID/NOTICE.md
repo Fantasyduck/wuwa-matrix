@@ -23,3 +23,5 @@ modal.py 是上游未修改的模态选择说明；浏览器只使用其默认�
 - https://github.com/Loping151/XutheringWavesUID/blob/main/XutheringWavesUID/utils/api/model/battle.py
 
 本地 JavaScript 适配位于 data/account_matrix.js，读取官方库街区 newTowerIndex / newTowerDetail，使用临时 b-at 与绑定账号区服，不调用该项目的排行上传服务。真实战绩和本地推演独立展示，不从总分反推未经接口提供的实际伤害。
+
+矩阵刷新流程参考上游 `utils/api/requests.py` 中 `get_self_waves_ck` → `refresh_data` 和 `wutheringwaves_abyss/draw_matrix_card.py` 的查询顺序。本地 `data/account_matrix.js` 先调用官方 `/aki/roleBox/akiBox/refreshData`，成功后查询矩阵。上游链接：https://github.com/Loping151/XutheringWavesUID/blob/main/XutheringWavesUID/utils/api/requests.py 。2026-10-09 核对；本地回归仅使用合成凭据，未上传真实战绩。

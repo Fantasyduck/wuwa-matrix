@@ -1,15 +1,15 @@
 {
   "index.html": {
-    "bytes": 222520,
-    "sha256": "098b4aec9db3f97ba46b54d41a73b2076746cd6ec3b4b9a61f0e9a4928c62033"
+    "bytes": 222585,
+    "sha256": "d5360bf8c722371192d1122dedf24dfc4635e05bb66babb0eedb4142ddcbf1c8"
   },
   "_headers": {
     "bytes": 149,
     "sha256": "a528f15c79309137ca5d367ead3be86c3550942d1e1efd1379848bb6d71820f7"
   },
   "data/account_matrix.js": {
-    "bytes": 8015,
-    "sha256": "8fb4d5634f8787666a6ae8838ed6188c71ad3eb03b76a019d7244f537db06d89"
+    "bytes": 16942,
+    "sha256": "750e4051eee9e24d8dfb84e938b82f30f1a02babb708dca28e0d5574fdbcb6b1"
   },
   "data/bosses.js": {
     "bytes": 15217,
@@ -124,8 +124,8 @@
     "sha256": "4ffcaa167303725bedb10b9bd5fe8668718fdae6c1f2e68b32c82cce7679cda4"
   },
   "styles/matrix-panel.css": {
-    "bytes": 5101,
-    "sha256": "345de824802717e702aadb4a0a569cac00ae9c457a065022897d4b6387091af6"
+    "bytes": 13022,
+    "sha256": "0c7d523320bbd4ce404ee5fd34e6ce1f0442320b9fd71cf0860688227d6b8e1b"
   },
   "styles/polish.css": {
     "bytes": 12441,
@@ -3532,19 +3532,19 @@
     "sha256": "c48f57a01807fa5f5f26794e3aa89f4a343182373a14db27d275a03580ff945d"
   },
   "third_party/XutheringWavesUID/NOTICE.md": {
-    "bytes": 2157,
-    "sha256": "e514cc32952a531ae02dfd08ecd1d138c6ef34e48257b252e1cb6988a349ccb1"
+    "bytes": 2627,
+    "sha256": "5b4083357685ad82681e4e7ee1bfc250547e05c8b272aaaf01201e7631861714"
   },
   "third_party/XutheringWavesUID/resource-manifest.json": {
     "bytes": 11160,
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 42240,
-    "sha256": "6d21d11b8b0ddc3064530c4d86a0f05151d0815078e3ab9fa3ea41b4701ccfc9"
+    "bytes": 43432,
+    "sha256": "c4697d36bd2c44cb9e5b5f66fd6f0266cbfdda25c95c930d833a696b35241724"
   },
   "release.json": {
     "bytes": 36,
-    "sha256": "9216f5adbb958e581966e156e7fd9e14a6af0523cef20b8759efc6e23b297f34"
+    "sha256": "208dfc55c026af9ed153305218c14728265a167392fa2b8ccd532d7e36f514fb"
   }
 }
