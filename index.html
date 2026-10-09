@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="matrix-release" content="30dc7d901ceb5a49">
+<meta name="matrix-release" content="b12637502d9d6cb1">
 <meta name="matrix-sdk-version" content="3147288420c07cfe">
 <script>
 /* Kept inline so an older HTML entry can discover a new release independently of cached JS. */
@@ -940,7 +940,7 @@ body.reveal .roundgroup{animation:riseIn .4s var(--ease) both}
 <script src="data/echo_score.js?v=ee42726ac12ec880"></script>
 <script src="data/role_config.js?v=15ee969eb8dd4db8"></script>
 <script src="data/account_matrix.js?v=977f19a5ad4a7e6d"></script>
-<script src="data/matrix_record_import.js?v=60edda5076ffa1dc"></script>
+<script src="data/matrix_record_import.js?v=1c8ccecce7851eb7"></script>
 <script src="data/monsters.js?v=7c20bb1f1fc291cb"></script>
 <script src="data/matrix.js?v=db6f2fcf32fa7d60"></script>
 <script src="data/matrix_hp.js?v=28467836f8747c65"></script>
@@ -2052,7 +2052,7 @@ function teamPreviewHTML(t, r, covered){
       ${(r.idle||0)>0.5 ? `<div class="note warn">该队波次已全部打穿，剩余 ${fmt(r.idle)} 分估分未计入——可适当调低估分，或让该队多分几波。</div>` : ""}
       <div class="tpop-sec">伤害推演</div>
       <div class="kv"><span>位次上需打掉的总血量</span><b>${fmt(totalHp)}</b></div>
-      <div class="kv"><span>本队实际削减血量</span><b>${fmt(r.damage)}</b></div>
+      <div class="kv"><span>本队推演削减血量</span><b>${fmt(r.damage)}</b></div>
       <div class="kv"><span>伤害折算得分（＝伤害 × 该波系数 ÷ 1e6）</span><b>${fmt(r.dmgScore)}</b></div>
       ${r.shortfall>0 ? `<div class="kv"><span>还需补的输出</span><b style="color:var(--bad)">${fmt(r.shortfall)}</b></div>` : ""}
       ${buff ? `<div class="note">已选回路：${esc(buff.name)}——${esc(fillDesc(buff))}</div>` : `<div class="note warn">未选择增幅回路，仅作排布记录。</div>`}

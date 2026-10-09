@@ -1,7 +1,7 @@
 {
   "index.html": {
     "bytes": 222658,
-    "sha256": "12ee230bf09bd36b396a21d574931ee44cbae438446477326ded7397c49020c4"
+    "sha256": "ee49a4b5d48b828251987caddae722484f9658bbce0f3c017ccd716eecd8dce2"
   },
   "_headers": {
     "bytes": 149,
@@ -76,8 +76,8 @@
     "sha256": "fe935e1cb92d8e2090d11f679a6de050e3068a89169d1374a2d4b8a204e78f62"
   },
   "data/matrix_record_import.js": {
-    "bytes": 5359,
-    "sha256": "60edda5076ffa1dc258a780bc7135eebee8f466712478afd4b934c436b9179ef"
+    "bytes": 6908,
+    "sha256": "1c8ccecce7851eb70dd2b88bb2b8bc8967714e430b32de1689f83a4308b33d03"
   },
   "data/monsters.js": {
     "bytes": 53649,
@@ -3544,11 +3544,11 @@
     "sha256": "a054d84f71af86c9caa0a80c12afcb084dcc45bd2e398f72437fe67b3d07b05d"
   },
   "使用说明.md": {
-    "bytes": 44499,
-    "sha256": "34910e07dd0b0088aa7915a190b3617ec66c94df98977a85188fd69e0d165622"
+    "bytes": 44911,
+    "sha256": "53d4c4a1114df179c3950189cd342524a986d0e4b7b9660c89eb4f57730ec869"
   },
   "release.json": {
     "bytes": 36,
-    "sha256": "6a2e227d23019ae8f9300efc80b192fa6801deb00ef94729a88e1bf708c061d6"
+    "sha256": "eb47a6578803e72bfb7daa36d11f19a7722058337334c19fd23cdf55587c8b1f"
   }
 }
